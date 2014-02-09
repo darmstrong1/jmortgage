@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Iterator;
 
 import org.joda.time.LocalDate;
-import org.joda.time.Period;
 import org.junit.Test;
 
 import co.da.jmtg.pmt.PmtPeriod;
@@ -34,9 +33,7 @@ public class DefaultPmtKeyTest {
     @Test
     public void testGetInstancePmtPeriodInt() {
         PmtKey pmtKey = PmtKeys.getDefaultPmtKey(PmtPeriod.RAPID_WEEKLY, 360);
-        // The key should be now plus one week since the payment period starts after the mortgage start date and the
-        // period for this mortgage is weekly.
-        assertTrue(pmtKey.getFirstKey().equals(LocalDate.now().plus(Period.weeks(1))));
+        assertTrue(pmtKey.getFirstKey().equals(LocalDate.now()));
     }
 
     @Test
@@ -52,7 +49,7 @@ public class DefaultPmtKeyTest {
         PmtKey pmtKey = PmtKeys.getDefaultPmtKey(PmtPeriod.RAPID_WEEKLY, LocalDate.now(), count);
         assertTrue(pmtKey.getPmtPeriod() == PmtPeriod.RAPID_WEEKLY);
         assertTrue(pmtKey.getCount() == count);
-        assertTrue(pmtKey.getFirstKey().equals(LocalDate.now().plus(Period.weeks(1))));
+        assertTrue(pmtKey.getFirstKey().equals(LocalDate.now()));
     }
 
     @Test
