@@ -480,7 +480,7 @@ public class DefaultFixedAmortizationCalculatorTest {
         ImmutableSortedMap.Builder<LocalDate, Payment> builder = new ImmutableSortedMap.Builder<>(Ordering.natural());
         Period month = Period.months(1);
         // Add one month. The current date is the start date of the mortgage, not of the first payment.
-        LocalDate key = LocalDate.now().plus(month);
+        LocalDate key = LocalDate.now();
         builder.put(key, new TestingPayment(928.85, 397.60, 531.25, 531.25, 149602.40));
         key = key.plus(month);
         builder.put(key, new TestingPayment(928.85, 399.01, 529.84, 1061.09, 149203.39));
@@ -973,7 +973,7 @@ public class DefaultFixedAmortizationCalculatorTest {
         ImmutableSortedMap.Builder<LocalDate, Payment> builder = new ImmutableSortedMap.Builder<>(Ordering.natural());
         Period month = Period.months(1);
         // Add one month. The current date is the start date of the mortgage, not of the first payment.
-        LocalDate key = LocalDate.now().plus(month);
+        LocalDate key = LocalDate.now();
         builder.put(key, new TestingPayment(1428.85, 897.60, 500.0, 531.25, 531.25, 149102.40));
         key = key.plus(month);
         builder.put(key, new TestingPayment(1428.85, 900.78, 500.0, 528.07, 1059.32, 148201.62));
