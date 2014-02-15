@@ -1,9 +1,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>co.da.jmortgage</groupId>
+  <groupId>co.davidarmstrong.jmortgage</groupId>
   <artifactId>jmortgage</artifactId>
   <version>1.0.0</version>
   <name>jmortgage</name>
+  <description>A java library for calculating mortgage schedules</description>
+  <developers>
+    <developer>
+      <name>David Armstrong</name>
+      <url>https://github.com/darmstrong1</url>
+    </developer>
+  </developers>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>https://github.com/darmstrong1/jmortgage</url>
+  </scm>
   <dependencies>
   	<dependency>
   		<groupId>com.google.guava</groupId>
