@@ -13,6 +13,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
+/**
+ * The default implementation of PmtKey.
+ * 
+ * @author David Armstrong
+ * 
+ */
 class DefaultPmtKey implements PmtKey {
 
     private final LocalDate firstKey;
@@ -26,18 +32,32 @@ class DefaultPmtKey implements PmtKey {
     // means clients can use == to compare for equality.
     private static final Interner<PmtKey> interner = Interners.newStrongInterner();
 
-    /**
-     * Creates an object using the specified pmtPeriod and LocalDate object.
+    /*
+     * Creates an object using the specified pmtPeriod and LocalDate object. The count of payments defaults to 1.
      * 
-     * @param pmtPeriod
-     *            The <tt>PmtPeriod</tt> object
-     * @param key
-     *            The <tt>LocalDate</tt> object
+     * @param pmtPeriod The <tt>PmtPeriod</tt> object
+     * 
+     * @param key The <tt>LocalDate</tt> object
      */
     private DefaultPmtKey(PmtPeriod pmtPeriod, LocalDate key) {
         this(pmtPeriod, key, 1);
     }
 
+    /*
+     * Creates an object using the specified pmtPeriod and LocalDate object.
+     * 
+     * @param pmtPeriod The <tt>PmtPeriod</tt> object
+     * 
+     * @param key The <tt>LocalDate</tt> object
+     * 
+     * @param count the count of payments
+     * 
+     * @throws NullPointerException if pmtPeriod is null or key is null.
+     * 
+     * @throws IllegalArgumentException if pmtPeriod is PmtPeriod.ONETIME, but count is greater than 1.
+     * 
+     * @return PmtKey instance
+     */
     private DefaultPmtKey(PmtPeriod pmtPeriod, LocalDate key, int count) {
 
         Preconditions.checkNotNull(pmtPeriod, "pmtPeriod must not be null.");
@@ -59,10 +79,41 @@ class DefaultPmtKey implements PmtKey {
         keys = builder.build();
     }
 
+    /**
+     * Creates an object using the specified pmtPeriod and LocalDate object. The count of payments defaults to 1.
+     * 
+     * @param pmtPeriod
+     *            The <tt>PmtPeriod</tt> object
+     * @param key
+     *            The <tt>LocalDate</tt> object
+     * 
+     * @throws NullPointerException
+     *             if pmtPeriod is null or key is null.
+     * 
+     * @return PmtKey instance
+     */
     public static PmtKey getInstance(PmtPeriod pmtPeriod, LocalDate key) {
         return interner.intern(new DefaultPmtKey(pmtPeriod, key));
     }
 
+    /**
+     * Creates an object using the specified pmtPeriod and LocalDate object.
+     * 
+     * @param pmtPeriod
+     *            The <tt>PmtPeriod</tt> object
+     * @param key
+     *            The <tt>LocalDate</tt> object
+     * @param count
+     *            the count of payments
+     * 
+     * @throws NullPointerException
+     *             if pmtPeriod is null or key is null.
+     * 
+     * @throws IllegalArgumentException
+     *             if pmtPeriod is PmtPeriod.ONETIME, but count is greater than 1.
+     * 
+     * @return PmtKey instance
+     */
     public static PmtKey getInstance(PmtPeriod pmtPeriod, LocalDate key, int count) {
         return interner.intern(new DefaultPmtKey(pmtPeriod, key, count));
     }

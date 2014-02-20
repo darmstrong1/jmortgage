@@ -55,83 +55,87 @@ public interface FixedAmortizationCalculator {
     FixedAmortizationCalculator setPmtKey(PmtKey pmtKey);
 
     /**
-     * Sets the extra payment(s) represented by the ExtraPmt object passed in. If any payment installments already had
-     * an extra payment, this method overwrites that value.
+     * Returns a new FixedAmortization instance with the extra payment(s) represented by the ExtraPmt object passed in.
+     * If any payment installments of the original instance already had an extra payment, this method overwrites that
+     * value.
      * 
      * @param extraPmt
-     * @return the actual number of extra payments that were set.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator setExtraPayment(ExtraPmt extraPmt);
 
     /**
-     * Sets the extra payments represented by the list of ExtraPmt objects passed in. If any payment installments
-     * already had an extra payment, this method overwrites that value.
+     * Returns a new FixedAmortization instance with the extra payments represented by the Iterable of ExtraPmt objects
+     * passed in. If any payment installments of the original instance already had an extra payment, this method
+     * overwrites that value.
      * 
      * @param extraPmts
-     * @return the actual number of extra payments that were set.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator setExtraPayments(Iterable<ExtraPmt> extraPmts);
 
     /**
-     * Sets the extra payments represented by the list of ExtraPmt objects passed in. If any payment installments
-     * already had an extra payment, this method overwrites that value.
+     * Returns a new FixedAmortization instance with the extra payments represented by the Map of extra payments passed
+     * in. The extra payments are a map of doubles with the date of the extra payment as the key. If any payment
+     * installments of the original instance already had an extra payment, this method overwrites that value.
      * 
      * @param extraPmts
-     * @return the actual number of extra payments that were set.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator setExtraPayments(Map<LocalDate, Double> extraPmts);
 
     /**
-     * Adds the extra payment(s) represented by the ExtraPmt object passed in. If any payment installments already had
-     * an extra payment, this method adds to that value.
+     * Returns a new FixedAmortization instance with the extra payment(s) represented by the ExtraPmt object passed in.
+     * If any payment installments of the original instance already had an extra payment, the new instance will have the
+     * sum of the two values as the extra payment amount.
      * 
      * @param extraPmt
-     * @return the actual number of extra payments that were set.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator addExtraPayment(ExtraPmt extraPmt);
 
     /**
-     * Adds the extra payments represented by the list of ExtraPmt objects passed in. If any payment installments
-     * already had an extra payment, this method adds to that value.
+     * Returns a new FixedAmortization instance with the extra payments represented by the Iterable of ExtraPmt objects
+     * passed in. If any payment installments of the original instance already had an extra payment, the new instance
+     * will have the sum of the two values as the extra payment amount.
      * 
      * @param extraPmts
-     * @return
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator addExtraPayments(Iterable<ExtraPmt> extraPmts);
 
     /**
-     * Adds the extra payments represented by the list of ExtraPmt objects passed in. If any payment installments
-     * already had an extra payment, this method adds to that value.
+     * Returns a new FixedAmortization instance with the extra payments represented by the Map of extra payments passed
+     * in. The extra payments are a map of doubles with the date of the extra payment as the key. If any payment
+     * installments of the original instance already had an extra payment, the new instance will have the sum of the two
+     * values as the extra payment amount.
      * 
      * @param extraPmts
-     * @return the actual number of extra payments that were set.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator addExtraPayments(Map<LocalDate, Double> extraPmts);
 
     /**
-     * Removes the extra payment from the payment installment for the key passed in. If no payment installment was found
-     * with that key, it returns false. If the payment installment did not have an extra payment, the method does
-     * nothing, but returns true.
+     * Removes the extra payment from the payment installment for the key passed in.
      * 
      * @param key
-     * @return true if a payment installment was found for the key, false if it was not.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator removeExtraPayment(LocalDate key);
 
     /**
-     * Removes the extra payments represented by the list of PmtKey objects passed in. If a payment installment does not
-     * have an extra payment, it does nothing to that payment.
+     * Returns a new FixedAmortization instance with the extra payments represented by the Iterable of PmtKey objects
+     * passed in removed.
      * 
      * @param pmtKeys
-     * @return the actual number of extra payments found. It counts all keys found, regardless of if it had an extra
-     *         payment to remove.
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator removeExtraPayments(Iterable<LocalDate> keys);
 
     /**
      * Returns a copy of the map of extra payments, sorted by chronological order.
      * 
-     * @return
+     * @return sorted map of extra payments, sorted by date
      */
     SortedMap<LocalDate, Double> getExtraPayments();
 
@@ -139,12 +143,12 @@ public interface FixedAmortizationCalculator {
      * Returns the extra payment at the payment with the key passed in.
      * 
      * @param key
-     * @return
+     * @return extra payment amount
      */
     double getExtraPayment(LocalDate key);
 
     /**
-     * Sets all extra payments to 0.
+     * Returns a new FixedAmortizationCalculator instance with no extra payments.
      */
     FixedAmortizationCalculator clearExtraPayments();
 
@@ -157,8 +161,12 @@ public interface FixedAmortizationCalculator {
      */
     SortedMap<LocalDate, Payment> getTable();
 
-    // TODO: Add buildTable method that takes extra payments.
-
+    /**
+     * Interface that represents a payment for a period.
+     * 
+     * @author David Armstrong
+     * 
+     */
     public interface Payment {
         /**
          * Constant value for the position of the total amount for a payment when calling

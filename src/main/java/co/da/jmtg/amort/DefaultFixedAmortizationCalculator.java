@@ -22,6 +22,13 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.Ordering;
 
+/**
+ * The default implementation of <tt>FixedAmortizationCalculator</tt>. It is for a US based mortgage.
+ * 
+ * @since 1.0
+ * @author David Armstrong
+ * 
+ */
 class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator {
 
     private final PmtCalculator pmtCalculator;
@@ -41,16 +48,16 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
 
     private static final Interner<FixedAmortizationCalculator> interner = Interners.newStrongInterner();
 
-    /**
+    /*
      * 
      * @param pmtCalculator
+     * 
      * @param pmtKey
      * 
-     * @throws NullPointerException
-     *             if pmtCalculator or pmtKey is null.
+     * @throws NullPointerException if pmtCalculator or pmtKey is null.
      * 
-     * @throws IllegalArgumentException
-     *             if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY, or RAPID_WEEKLY.
+     * @throws IllegalArgumentException if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY,
+     * or RAPID_WEEKLY.
      */
     private DefaultFixedAmortizationCalculator(PmtCalculator pmtCalculator, PmtKey pmtKey) {
         checkPreconditions(pmtCalculator, pmtKey);
@@ -66,22 +73,23 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         amortizationMap = buildTable();
     }
 
-    /**
+    /*
      * Builds a FixedAmortizationCalculator with extra payments. It is the responsibility of the developer to ensure
      * that all dates in the ExtraPmt object are valid dates for this mortgage.
      * 
      * @param pmtCalculator
+     * 
      * @param pmtKey
+     * 
      * @param extraPmts
      * 
-     * @throws NullPointerException
-     *             if pmtCalculator, pmtKey, or extraPmts is null.
+     * @throws NullPointerException if pmtCalculator, pmtKey, or extraPmts is null.
      * 
-     * @throws IllegalArgumentException
-     *             if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY, or RAPID_WEEKLY.
+     * @throws IllegalArgumentException if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY,
+     * or RAPID_WEEKLY.
      * 
-     * @throws IllegalArgumentException
-     *             if extraPmts contains dates that are not valid payment dates for the mortgage this object represents.
+     * @throws IllegalArgumentException if extraPmts contains dates that are not valid payment dates for the mortgage
+     * this object represents.
      */
     private DefaultFixedAmortizationCalculator(PmtCalculator pmtCalculator, PmtKey pmtKey, ExtraPmt extraPmts) {
         checkPreconditions(pmtCalculator, pmtKey, extraPmts);
@@ -96,25 +104,25 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         amortizationMap = buildTable(extraPmtMap);
     }
 
-    /**
+    /*
      * Builds a FixedAmortizationCalculator with extra payments. It is the responsibility of the developer to ensure
      * that all dates in the ExtraPmt object are valid dates for this mortgage.
      * 
      * @param pmtCalculator
+     * 
      * @param pmtKey
+     * 
      * @param extraPmts
      * 
-     * @throws NullPointerException
-     *             if pmtCalculator, pmtKey, or extraPmts is null.
+     * @throws NullPointerException if pmtCalculator, pmtKey, or extraPmts is null.
      * 
-     * @throws IllegalArgumentException
-     *             if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY, or RAPID_WEEKLY.
+     * @throws IllegalArgumentException if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY,
+     * or RAPID_WEEKLY.
      * 
-     * @throws IllegalArgumentException
-     *             if extraPmts contains dates that are not valid payment dates for the mortgage this object represents.
+     * @throws IllegalArgumentException if extraPmts contains dates that are not valid payment dates for the mortgage
+     * this object represents.
      * 
-     * @throws IllegalArgumentException
-     *             if any of the ExtraPmt objects have duplicate date keys.
+     * @throws IllegalArgumentException if any of the ExtraPmt objects have duplicate date keys.
      */
     private DefaultFixedAmortizationCalculator(PmtCalculator pmtCalculator, PmtKey pmtKey, Iterable<ExtraPmt> extraPmts) {
         checkPreconditions(pmtCalculator, pmtKey, extraPmts);
@@ -129,25 +137,25 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         amortizationMap = buildTable(extraPmtMap);
     }
 
-    /**
+    /*
      * Builds a FixedAmortizationCalculator with extra payments. It is the responsibility of the developer to ensure
      * that all dates in the ExtraPmt object are valid dates for this mortgage.
      * 
      * @param pmtCalculator
+     * 
      * @param pmtKey
+     * 
      * @param extraPmts
      * 
-     * @throws NullPointerException
-     *             if pmtCalculator, pmtKey, or extraPmts is null.
+     * @throws NullPointerException if pmtCalculator, pmtKey, or extraPmts is null.
      * 
-     * @throws IllegalArgumentException
-     *             if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY, or RAPID_WEEKLY.
+     * @throws IllegalArgumentException if PmtPeriod in PmtCalculator is not BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY,
+     * or RAPID_WEEKLY.
      * 
-     * @throws IllegalArgumentException
-     *             if extraPmts contains dates that are not valid payment dates for the mortgage this object represents.
+     * @throws IllegalArgumentException if extraPmts contains dates that are not valid payment dates for the mortgage
+     * this object represents.
      * 
-     * @throws IllegalArgumentException
-     *             if any of the ExtraPmt objects have duplicate date keys.
+     * @throws IllegalArgumentException if any of the ExtraPmt objects have duplicate date keys.
      */
     private DefaultFixedAmortizationCalculator(PmtCalculator pmtCalculator, PmtKey pmtKey,
             Map<LocalDate, Double> extraPmts) {
@@ -517,8 +525,14 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * also be in the new object. If the extra payments in this object shared any of the keys from the extra payments
      * passed in, the new values will overwrite the old ones.
      * 
-     * @param ExtraPmt
+     * @param extraPmts
      *            the extra payments that will be set in the new FixedAmortizationCalculator object.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null.
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
      * 
      * @return a new FixedAmortizationCalculator object.
      * 
@@ -534,6 +548,24 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, false));
     }
 
+    /**
+     * Creates a new FixedAmortizationCalculator with the extra payments represented by the Iterable<ExtraPmt> object
+     * passed in. If this object already had some extra payments, those that did not have the same keys as the ones
+     * passed in will also be in the new object. If the extra payments in this object shared any of the keys from the
+     * extra payments passed in, the new values will overwrite the old ones.
+     * 
+     * @param extraPmts
+     *            the extra payments that will be set in the new FixedAmortizationCalculator object.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
+     * @return a new FixedAmortizationCalculator object.
+     * 
+     */
     @Override
     public FixedAmortizationCalculator setExtraPayments(Iterable<ExtraPmt> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
@@ -545,6 +577,23 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, false));
     }
 
+    /**
+     * Creates a new FixedAmortizationCalculator with the extra payments represented by the Map<LocalDate, Double>
+     * object passed in. If this object already had some extra payments, those that did not have the same keys as the
+     * ones passed in will also be in the new object. If the extra payments in this object shared any of the keys from
+     * the extra payments passed in, the new values will overwrite the old ones.
+     * 
+     * @param extraPmts
+     *            the extra payments that will be set in the new FixedAmortizationCalculator object.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
+     * @return a new FixedAmortizationCalculator object.
+     */
     @Override
     public FixedAmortizationCalculator setExtraPayments(Map<LocalDate, Double> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
@@ -556,6 +605,21 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, false));
     }
 
+    /**
+     * Creates a new FixedAmortizationCalculator with added extra payments. If the payment for a date in extraPmts
+     * already has an extra payment, the new extra value will be added to it.
+     * 
+     * @param extraPmts
+     *            the extra payments to be added.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
+     * @return a new FixedAmortizationCalculator object.
+     */
     @Override
     public FixedAmortizationCalculator addExtraPayment(ExtraPmt extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
@@ -567,6 +631,21 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, true));
     }
 
+    /**
+     * Creates a new FixedAmortizationCalculator with added extra payments. If the payment for a date in extraPmts
+     * already has an extra payment, the new extra value will be added to it.
+     * 
+     * @param extraPmts
+     *            the extra payments to be added.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
+     * @return a new FixedAmortizationCalculator object.
+     */
     @Override
     public FixedAmortizationCalculator addExtraPayments(Iterable<ExtraPmt> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
@@ -578,6 +657,21 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, true));
     }
 
+    /**
+     * Creates a new FixedAmortizationCalculator with added extra payments. If the payment for a date in extraPmts
+     * already has an extra payment, the new extra value will be added to it.
+     * 
+     * @param extraPmts
+     *            the extra payments to be added.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
+     * @return a new FixedAmortizationCalculator object.
+     */
     @Override
     public FixedAmortizationCalculator addExtraPayments(Map<LocalDate, Double> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
@@ -589,6 +683,20 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, true));
     }
 
+    /**
+     * Removes the extra payment from the payment installment for the key passed in.
+     * 
+     * @param key
+     *            the key of the extra payment to remove
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @throws IllegalArgumentException
+     *             if there are no extra payments defined for this object or if there is no extra payment for the
+     *             payment represented by key
+     * @return new FixedAmortizationCalculator instance
+     */
     @Override
     public FixedAmortizationCalculator removeExtraPayment(LocalDate key) {
         Preconditions.checkNotNull(key, "key must not be null.");
@@ -607,6 +715,20 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, reducedMap);
     }
 
+    /**
+     * Removes the extra payment from the payment installment for the key passed in.
+     * 
+     * @param keys
+     *            the keys of the extra payments to remove
+     * 
+     * @throws NullPointerException
+     *             if keys is null
+     * 
+     * @throws IllegalArgumentException
+     *             if there are no extra payments defined for this object or if there is no extra payment for the
+     *             payments represented by the keys
+     * @return new FixedAmortizationCalculator instance
+     */
     @Override
     public FixedAmortizationCalculator removeExtraPayments(Iterable<LocalDate> keys) {
         Preconditions.checkNotNull(keys, "keys must not be null.");
@@ -625,6 +747,13 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey, reducedMap);
     }
 
+    /**
+     * Clears the extra payments.
+     * 
+     * @throws IllegalArgumentException
+     *             if there are no extra payments defined for this object
+     * @return new FixedAmortizationCalculator instance
+     */
     @Override
     public FixedAmortizationCalculator clearExtraPayments() {
         Preconditions.checkArgument(extraPmtMap.isEmpty() == false,
@@ -650,6 +779,8 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * 
      * @throws NullPointerException
      *             if key is null
+     * 
+     * @return the extra payment for the key or 0.0 if there is no extra payment for it
      */
     @Override
     public double getExtraPayment(LocalDate key) {
@@ -658,6 +789,9 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return e == null ? 0.0 : e.doubleValue();
     }
 
+    /**
+     * Returns the amortization table as a sorted map. The keys are the date the payment is due.
+     */
     @Override
     public SortedMap<LocalDate, Payment> getTable() {
         return amortizationMap;

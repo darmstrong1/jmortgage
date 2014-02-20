@@ -28,16 +28,6 @@ class DefaultExtraPmt implements ExtraPmt {
 
     private static final Interner<ExtraPmt> interner = Interners.newStrongInterner();
 
-    /**
-     * Creates an object with the specified <tt>PmtKey</tt> instance, count, and amount.
-     * 
-     * @param pmtKey
-     *            The <tt>PmtKey</tt> instance
-     * @param count
-     *            The count value
-     * @param amount
-     *            The amount value
-     */
     private DefaultExtraPmt(PmtKey pmtKey, double amount) {
         Preconditions.checkNotNull(pmtKey, "pmtKey must not be null.");
         Preconditions.checkArgument(amount > 0.0, "amount must be greater than 0.");
@@ -46,6 +36,14 @@ class DefaultExtraPmt implements ExtraPmt {
         this.amount = amount;
     }
 
+    /**
+     * Creates an object with the specified <tt>PmtKey</tt> instance, count, and amount.
+     * 
+     * @param pmtKey
+     *            The <tt>PmtKey</tt> instance
+     * @param amount
+     *            The amount value
+     */
     public static ExtraPmt getInstance(PmtKey pmtKey, double amount) {
         return interner.intern(new DefaultExtraPmt(pmtKey, amount));
     }

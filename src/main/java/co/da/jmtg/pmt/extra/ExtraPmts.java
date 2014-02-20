@@ -2,6 +2,14 @@ package co.da.jmtg.pmt.extra;
 
 import co.da.jmtg.amort.PmtKey;
 
+/**
+ * Contains static classes pertaining to instances of <tt>ExtraPmt</tt>
+ * 
+ * @since 1.0
+ * 
+ * @author David Armstrong
+ * 
+ */
 public class ExtraPmts {
 
     private ExtraPmts() {

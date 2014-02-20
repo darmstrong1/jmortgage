@@ -6,6 +6,14 @@ import co.da.jmtg.pmt.PmtPeriod;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Contains static classes pertaining to instances of <tt>PmtKey</tt>
+ * 
+ * @since 1.0
+ * 
+ * @author David Armstrong
+ * 
+ */
 public class PmtKeys {
     // Suppresses default constructor, ensuring non-instantiability.
     private PmtKeys() {

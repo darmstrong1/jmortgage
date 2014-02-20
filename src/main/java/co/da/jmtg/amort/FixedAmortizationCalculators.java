@@ -7,6 +7,13 @@ import org.joda.time.LocalDate;
 import co.da.jmtg.pmt.PmtCalculator;
 import co.da.jmtg.pmt.extra.ExtraPmt;
 
+/**
+ * Contains static classes pertaining to instances of <tt>FixedAmortizationCalculator</tt>
+ * 
+ * @since 1.0
+ * @author David Armstrong
+ * 
+ */
 public class FixedAmortizationCalculators {
 
     private FixedAmortizationCalculators() {
