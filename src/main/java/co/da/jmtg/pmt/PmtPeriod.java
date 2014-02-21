@@ -4,8 +4,8 @@ import org.joda.time.Period;
 
 /**
  * Enum that represents the amount of time between payments. This enum is used when building an implementation of
- * {@link PmtCalculator} to calcluate the interval payment for a mortgage term. It is used when building an
- * implementation of {@link co.da.amort.PmtKey} to determine how far to increment subsequent payment keys.
+ * {@link PmtCalculator} to calculate the interval payment for a mortgage term. It is used when building an
+ * implementation of {@link co.da.jmtg.amort.PmtKey} to determine how far to increment subsequent payment keys.
  * 
  * @since 1.0
  * @author David Armstrong

@@ -59,10 +59,18 @@ public interface FixedAmortizationCalculator {
      * If any payment installments of the original instance already had an extra payment, this method overwrites that
      * value.
      * 
-     * @param extraPmt
+     * @param extraPmts
+     *            the extra payments that will be set in the new FixedAmortizationCalculator object.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null.
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
      * @return new FixedAmortizationCalculator instance
      */
-    FixedAmortizationCalculator setExtraPayment(ExtraPmt extraPmt);
+    FixedAmortizationCalculator setExtraPayment(ExtraPmt extraPmts);
 
     /**
      * Returns a new FixedAmortization instance with the extra payments represented by the Iterable of ExtraPmt objects
@@ -70,6 +78,14 @@ public interface FixedAmortizationCalculator {
      * overwrites that value.
      * 
      * @param extraPmts
+     *            the extra payments that will be set in the new FixedAmortizationCalculator object.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator setExtraPayments(Iterable<ExtraPmt> extraPmts);
@@ -80,6 +96,14 @@ public interface FixedAmortizationCalculator {
      * installments of the original instance already had an extra payment, this method overwrites that value.
      * 
      * @param extraPmts
+     *            the extra payments that will be set in the new FixedAmortizationCalculator object.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator setExtraPayments(Map<LocalDate, Double> extraPmts);
@@ -89,10 +113,18 @@ public interface FixedAmortizationCalculator {
      * If any payment installments of the original instance already had an extra payment, the new instance will have the
      * sum of the two values as the extra payment amount.
      * 
-     * @param extraPmt
+     * @param extraPmts
+     *            the extra payments to be added.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
      * @return new FixedAmortizationCalculator instance
      */
-    FixedAmortizationCalculator addExtraPayment(ExtraPmt extraPmt);
+    FixedAmortizationCalculator addExtraPayment(ExtraPmt extraPmts);
 
     /**
      * Returns a new FixedAmortization instance with the extra payments represented by the Iterable of ExtraPmt objects
@@ -100,6 +132,14 @@ public interface FixedAmortizationCalculator {
      * will have the sum of the two values as the extra payment amount.
      * 
      * @param extraPmts
+     *            the extra payments to be added.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator addExtraPayments(Iterable<ExtraPmt> extraPmts);
@@ -111,6 +151,14 @@ public interface FixedAmortizationCalculator {
      * values as the extra payment amount.
      * 
      * @param extraPmts
+     *            the extra payments to be added.
+     * 
+     * @throws NullPointerException
+     *             if extraPmts is null
+     * 
+     * @throws IllegalArgumentException
+     *             if any payments in extraPmts have a date that is not a valid date for this mortgage
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator addExtraPayments(Map<LocalDate, Double> extraPmts);
@@ -119,6 +167,15 @@ public interface FixedAmortizationCalculator {
      * Removes the extra payment from the payment installment for the key passed in.
      * 
      * @param key
+     *            the key of the extra payment to remove
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @throws IllegalArgumentException
+     *             if there are no extra payments defined for this object or if there is no extra payment for the
+     *             payment represented by key
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator removeExtraPayment(LocalDate key);
@@ -127,7 +184,16 @@ public interface FixedAmortizationCalculator {
      * Returns a new FixedAmortization instance with the extra payments represented by the Iterable of PmtKey objects
      * passed in removed.
      * 
-     * @param pmtKeys
+     * @param keys
+     *            the keys of the extra payments to remove
+     * 
+     * @throws NullPointerException
+     *             if keys is null
+     * 
+     * @throws IllegalArgumentException
+     *             if there are no extra payments defined for this object or if there is no extra payment for the
+     *             payments represented by the keys
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator removeExtraPayments(Iterable<LocalDate> keys);
@@ -143,12 +209,22 @@ public interface FixedAmortizationCalculator {
      * Returns the extra payment at the payment with the key passed in.
      * 
      * @param key
-     * @return extra payment amount
+     *            the key of the extra payment to get
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @return the extra payment for the key or 0.0 if there is no extra payment for it
      */
     double getExtraPayment(LocalDate key);
 
     /**
      * Returns a new FixedAmortizationCalculator instance with no extra payments.
+     * 
+     * @throws IllegalArgumentException
+     *             if there are no extra payments defined for this object
+     * 
+     * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator clearExtraPayments();
 

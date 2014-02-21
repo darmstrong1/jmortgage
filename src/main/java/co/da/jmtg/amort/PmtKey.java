@@ -7,11 +7,11 @@ import org.joda.time.LocalDate;
 import co.da.jmtg.pmt.PmtPeriod;
 
 /**
- * The payment key calculator used in an amortization map built by an implementation of {@link FixedAmortizationCalculator}
- * . The key used in an amortization map is a Long value that represents the date that the * payment is due. The
- * {@link PmtPeriod} value represents the time between payments. Implementations of this interface provide methods to
- * calculate the first key and to calculate subsequent keys. Calculation of subsequent keys is based on the interval
- * value.
+ * The payment key calculator used in an amortization map built by an implementation of
+ * {@link FixedAmortizationCalculator} . The key used in an amortization map is a Long value that represents the date
+ * that the * payment is due. The {@link PmtPeriod} value represents the time between payments. Implementations of this
+ * interface provide methods to calculate the first key and to calculate subsequent keys. Calculation of subsequent keys
+ * is based on the interval value.
  * 
  * @since 1.0
  * @author David Armstrong
@@ -28,7 +28,7 @@ public interface PmtKey extends Iterable<LocalDate> {
     /**
      * Gets the list of all the keys in chronological order.
      * 
-     * @return
+     * @return <tt>List</tt> of <tt>LocalDate</tt> objects
      */
     List<LocalDate> getKeys();
 
@@ -42,7 +42,7 @@ public interface PmtKey extends Iterable<LocalDate> {
     /**
      * Gets the count of payment keys this object represents.
      * 
-     * @return
+     * @return count of payments
      */
     int getCount();
 
