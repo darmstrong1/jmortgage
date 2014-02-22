@@ -994,17 +994,34 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         }
 
         DefaultFixedAmortizationCalculator that = (DefaultFixedAmortizationCalculator) o;
-        ComparisonChain cmpChain = ComparisonChain.start()
-                .compare(periodInterestRate, that.periodInterestRate)
-                .compare(pmt, that.pmt)
-                .compare(pmtCalculator, that.pmtCalculator)
-                .compare(pmtKey, that.pmtKey);
 
-        int result = cmpChain.result();
+        // The most important comparison to make between two FixedAmortizationCalculators is the total cost. This cost
+        // is the total principal owed plus the total interest. Compare this value first.
+        Payment thisLastPmt = amortizationMap.get(amortizationMap.lastKey());
+        Payment thatLastPmt = that.amortizationMap.get(that.amortizationMap.lastKey());
+        double thisTotalCost = BigDecimal.valueOf(pmtCalculator.getLoanAmt())
+                .add(BigDecimal.valueOf(thisLastPmt.getCumulativeInterest())).doubleValue();
+        double thatTotalCost = BigDecimal.valueOf(that.pmtCalculator.getLoanAmt())
+                .add(BigDecimal.valueOf(thatLastPmt.getCumulativeInterest())).doubleValue();
+
+        int result = Double.compare(thisTotalCost, thatTotalCost);
         if (result != 0) {
             return result;
         }
 
+        // The total costs are the same, so compare starting with the pmtCalculator.
+        result = ComparisonChain.start()
+                .compare(pmtCalculator, that.pmtCalculator)
+                .compare(periodInterestRate, that.periodInterestRate)
+                .compare(pmt, that.pmt)
+                .compare(pmtKey, that.pmtKey)
+                .result();
+
+        if (result != 0) {
+            return result;
+        }
+
+        // If two DefaultFixedAmortizationCalculators are not the same, it is highly unlikely we will get to this point.
         // See if the extraPmtMaps are the same size.
         int extraSz = extraPmtMap.size();
         int thatXtraSz = that.extraPmtMap.size();
@@ -1027,7 +1044,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         }
 
         // Compare the two amortization maps. We should never get here because if we did, the objects would be the same.
-        // But, we use an Interner, so objects that are equal will always be the same object.
+        // We use an Interner, so objects that are equal will always be the same object.
 
         // See if the amortization maps are the same size.
         int amortSz = amortizationMap.size();
