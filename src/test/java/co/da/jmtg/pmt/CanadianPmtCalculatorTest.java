@@ -39,10 +39,12 @@ public class CanadianPmtCalculatorTest {
         PmtCalculator pmtCalc1 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000, 4.5, 30);
         PmtCalculator pmtCalc2 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000, 4.5, 30);
 
-        // Both statements should be true. Clients won't need to ever call equals() because no two objects with the same
+        // All statements should be true. Clients won't need to ever call equals() because no two objects with the same
         // value will exist.
         assertTrue(pmtCalc1.equals(pmtCalc2));
         assertTrue(pmtCalc1 == pmtCalc2);
+        assertTrue(pmtCalc2.equals(pmtCalc1));
+        assertTrue(pmtCalc2 == pmtCalc1);
     }
 
     @Test
@@ -50,9 +52,32 @@ public class CanadianPmtCalculatorTest {
         PmtCalculator pmtCalc1 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000, 4.5, 30);
         PmtCalculator pmtCalc2 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000, 4.5, 20);
 
-        // Both statements should be false.
+        // All statements should be false.
         assertFalse(pmtCalc1.equals(pmtCalc2));
         assertFalse(pmtCalc1 == pmtCalc2);
+        assertFalse(pmtCalc2.equals(pmtCalc1));
+        assertFalse(pmtCalc2 == pmtCalc1);
+    }
+
+    @Test
+    public void testCompareTo() {
+        PmtCalculator pmtCalc1 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000.00, 4.5, 30);
+        PmtCalculator pmtCalc2 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000.00, 4.5, 30);
+        PmtCalculator pmtCalc3 = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000.00, 4.5, 20);
+
+        assertTrue(pmtCalc1.equals(pmtCalc2));
+        assertTrue(pmtCalc1 == pmtCalc2);
+        assertTrue(pmtCalc1.compareTo(pmtCalc2) == 0);
+        assertTrue(pmtCalc2.equals(pmtCalc1));
+        assertTrue(pmtCalc2 == pmtCalc1);
+        assertTrue(pmtCalc2.compareTo(pmtCalc1) == 0);
+
+        assertFalse(pmtCalc1.equals(pmtCalc3));
+        assertFalse(pmtCalc1 == pmtCalc3);
+        assertTrue(pmtCalc1.compareTo(pmtCalc3) > 0);
+        assertFalse(pmtCalc3.equals(pmtCalc1));
+        assertFalse(pmtCalc3 == pmtCalc1);
+        assertTrue(pmtCalc3.compareTo(pmtCalc1) < 0);
     }
 
 }

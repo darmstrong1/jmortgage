@@ -13,7 +13,7 @@ import co.da.jmtg.amort.PmtKey;
  * @author David Armstrong
  */
 
-public interface ExtraPmt {
+public interface ExtraPmt extends Comparable<ExtraPmt> {
 
     /**
      * Gets the <tt>PmtKey</tt> object for this extra payment. The <tt>PmtKey</tt> object indicates the start date of

@@ -4,6 +4,7 @@ import co.da.jmtg.amort.PmtKey;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
@@ -100,8 +101,39 @@ class DefaultExtraPmt implements ExtraPmt {
         }
 
         DefaultExtraPmt that = (DefaultExtraPmt) object;
-        return Objects.equal(this.pmtKey, that.pmtKey)
-                && Objects.equal(this.amount, that.amount);
+        return Objects.equal(this.amount, that.amount)
+                && Objects.equal(this.pmtKey, that.pmtKey);
+    }
+
+    /**
+     * Compare two DefaultExtraPmt objects.
+     * 
+     * @param o
+     *            the object to compare
+     * 
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
+     * 
+     * @throws ClassCastException
+     *             if the PmtKey object passed in is not a DefaultExtraPmt object.
+     */
+    @Override
+    public int compareTo(ExtraPmt o) {
+        if (this == o) {
+            return 0;
+        }
+
+        if (!(o instanceof DefaultExtraPmt)) {
+            throw new ClassCastException(
+                    "Object to compare must be of type DefaultExtraPmt. Object is " + o == null ? "null" : o.getClass()
+                            .getName());
+        }
+
+        DefaultExtraPmt that = (DefaultExtraPmt) o;
+        return ComparisonChain.start()
+                .compare(amount, that.amount)
+                .compare(pmtKey, that.pmtKey)
+                .result();
     }
 
 }

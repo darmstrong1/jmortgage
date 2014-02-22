@@ -16,6 +16,7 @@ import co.da.jmtg.pmt.extra.ExtraPmt;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
@@ -256,7 +257,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         Preconditions.checkArgument(validPeriod, "Extra Payment Period " + extraPeriod
                 + " is invalid for a mortgage payment period of " + mortgagePeriod + ".");
 
-        for (LocalDate key : extraPmts.getPmtKey()) {
+        for (LocalDate key : extraPmts.getPmtKey().getKeys()) {
             // If any key in extraPmts is not valid for this mortgage, throw an IllegalArgumentException. I aint playin.
             Preconditions.checkArgument(pmtKey.getKeys().contains(key),
                     "extraPmts contained the following payment date: " + key + ". It is not valid for this mortgage.");
@@ -520,6 +521,37 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     }
 
     /**
+     * Returns a new FixedAmortization instance with the extra payment represented by the ExtraPmt object passed in. If
+     * any payment installments of the original instance already had an extra payment, this method overwrites that
+     * value.
+     * 
+     * @param key
+     *            the key of the extra payment to set
+     * 
+     * @param amount
+     *            the amount of the extra payment
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @throws IllegalArgumentException
+     *             if the key passed in is not a valid date for this mortgage
+     * 
+     * @return new FixedAmortizationCalculator instance
+     */
+    public FixedAmortizationCalculator setExtraPayment(LocalDate key, double amount) {
+        Preconditions.checkNotNull(key, "key must not be null");
+
+        Map<LocalDate, Double> xtra = ImmutableMap.of(key, Double.valueOf(amount));
+
+        if (extraPmtMap.isEmpty()) {
+            return getInstance(pmtCalculator, pmtKey, xtra);
+        }
+
+        return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(xtra, false));
+    }
+
+    /**
      * Creates a new FixedAmortizationCalculator with the extra payments represented by the ExtraPmt object passed in.
      * If this object already had some extra payments, those that did not have the same keys as the ones passed in will
      * also be in the new object. If the extra payments in this object shared any of the keys from the extra payments
@@ -603,6 +635,36 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         }
 
         return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(extraPmts, false));
+    }
+
+    /**
+     * Returns a new FixedAmortization instance with the extra payment represented by the ExtraPmt object passed in. If
+     * any payment installments of the original instance already had an extra payment, this method adds to that value.
+     * 
+     * @param key
+     *            the key of the extra payment to set
+     * 
+     * @param amount
+     *            the amount of the extra payment
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @throws IllegalArgumentException
+     *             if the key passed in is not a valid date for this mortgage
+     * 
+     * @return new FixedAmortizationCalculator instance
+     */
+    public FixedAmortizationCalculator addExtraPayment(LocalDate key, double amount) {
+        Preconditions.checkNotNull(key, "key must not be null");
+
+        Map<LocalDate, Double> xtra = ImmutableMap.of(key, Double.valueOf(amount));
+
+        if (extraPmtMap.isEmpty()) {
+            return getInstance(pmtCalculator, pmtKey, xtra);
+        }
+
+        return getInstance(pmtCalculator, pmtKey, buildExtraPmtFromExisting(xtra, true));
     }
 
     /**
@@ -807,7 +869,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         ImmutableSortedMap.Builder<LocalDate, Payment> pmtMapBuilder = new ImmutableSortedMap.Builder<>(
                 Ordering.natural());
 
-        Iterator<LocalDate> keyIterator = pmtKey.iterator();
+        Iterator<LocalDate> keyIterator = pmtKey.getKeys().iterator();
         while ((BigDecimal.valueOf(principalOwed).setScale(2, RoundingMode.HALF_EVEN).doubleValue() > 0.0)
                 && (keyIterator.hasNext())) {
 
@@ -836,7 +898,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         ImmutableSortedMap.Builder<LocalDate, Payment> pmtMapBuilder = new ImmutableSortedMap.Builder<>(
                 Ordering.natural());
 
-        Iterator<LocalDate> keyIterator = pmtKey.iterator();
+        Iterator<LocalDate> keyIterator = pmtKey.getKeys().iterator();
         while ((BigDecimal.valueOf(principalOwed).setScale(2, RoundingMode.HALF_EVEN).doubleValue() > 0.0)
                 && (keyIterator.hasNext())) {
 
@@ -897,12 +959,93 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         }
 
         DefaultFixedAmortizationCalculator that = (DefaultFixedAmortizationCalculator) object;
-        return Objects.equal(this.pmtCalculator, that.pmtCalculator)
-                && Objects.equal(this.pmtKey, that.pmtKey)
-                && Objects.equal(this.periodInterestRate, that.periodInterestRate)
+        return Objects.equal(this.periodInterestRate, that.periodInterestRate)
                 && Objects.equal(this.pmt, that.pmt)
+                && Objects.equal(this.pmtCalculator, that.pmtCalculator)
+                && Objects.equal(this.pmtKey, that.pmtKey)
                 && Objects.equal(this.extraPmtMap, that.extraPmtMap)
                 && Objects.equal(this.amortizationMap, that.amortizationMap);
+    }
+
+    /**
+     * Compare two DefaultFixedAmortizationCalculator objects.
+     * 
+     * @param o
+     *            the object to compare
+     * 
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
+     * 
+     * @throws ClassCastException
+     *             if the PmtKey object passed in is not a DefaultFixedAmortizationCalculator object.
+     */
+    @Override
+    public int compareTo(FixedAmortizationCalculator o) {
+        // Since we use an Interner for this object, two objects that are equal should always be the same object, so
+        // this first check should always be true if the "objects" are the same.
+        if (this == o) {
+            return 0;
+        }
+
+        if (!(o instanceof DefaultFixedAmortizationCalculator)) {
+            throw new ClassCastException(
+                    "Object to compare must be of type DefaultFixedAmortizationCalculator. Object is " + o == null ? "null"
+                            : o.getClass().getName());
+        }
+
+        DefaultFixedAmortizationCalculator that = (DefaultFixedAmortizationCalculator) o;
+        ComparisonChain cmpChain = ComparisonChain.start()
+                .compare(periodInterestRate, that.periodInterestRate)
+                .compare(pmt, that.pmt)
+                .compare(pmtCalculator, that.pmtCalculator)
+                .compare(pmtKey, that.pmtKey);
+
+        int result = cmpChain.result();
+        if (result != 0) {
+            return result;
+        }
+
+        // See if the extraPmtMaps are the same size.
+        int extraSz = extraPmtMap.size();
+        int thatXtraSz = that.extraPmtMap.size();
+        if (extraSz > thatXtraSz) return 1;
+        if (extraSz < thatXtraSz) return -1;
+
+        // If we get here, we know the keys for both objects should be the same. If they were not the same, the PmtKey
+        // objects would not be the same and the PmtKey objects have already been compared. If they were not the same,
+        // we would not be at this point. So, at this point, compare the extra payment values.
+
+        Set<LocalDate> keys = extraPmtMap.keySet();
+
+        for (LocalDate key : keys) {
+            Double extraPmt = extraPmtMap.get(key);
+            Double thatXtraPmt = that.extraPmtMap.get(key);
+            // A null value is considered less than anything else.
+            if (thatXtraPmt == null) return 1;
+            result = extraPmt.compareTo(thatXtraPmt);
+            if (result != 0) return result;
+        }
+
+        // Compare the two amortization maps. We should never get here because if we did, the objects would be the same.
+        // But, we use an Interner, so objects that are equal will always be the same object.
+
+        // See if the amortization maps are the same size.
+        int amortSz = amortizationMap.size();
+        int thatAmortSz = that.amortizationMap.size();
+        if (amortSz > thatAmortSz) return 1;
+        if (amortSz < thatAmortSz) return -1;
+
+        keys = amortizationMap.keySet();
+        for (LocalDate key : keys) {
+            Payment thisPmt = amortizationMap.get(key);
+            Payment thatPmt = that.amortizationMap.get(key);
+            // A null value is considered less than anything else.
+            if (thatPmt == null) return 1;
+            result = thisPmt.compareTo(thatPmt);
+            if (result != 0) return result;
+        }
+
+        return 0;
     }
 
     class DefaultPayment implements FixedAmortizationCalculator.Payment {
@@ -1016,18 +1159,6 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
             };
         }
 
-        // @Override
-        // public String toString() {
-        // return Objects.toStringHelper(this)
-        // .add("total", total)
-        // .add("principal", principal)
-        // .add("extraPrincipal", extraPrincipal)
-        // .add("interest", interest)
-        // .add("cumulativeInterest", cumulativeInterest)
-        // .add("balance", balance)
-        // .toString();
-        // }
-
         @Override
         public String toString() {
             return Objects.toStringHelper(this)
@@ -1074,6 +1205,29 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
                     && Objects.equal(this.interest, that.interest)
                     && Objects.equal(this.cumulativeInterest, that.cumulativeInterest)
                     && Objects.equal(this.balance, that.balance);
+        }
+
+        @Override
+        public int compareTo(Payment o) {
+            if (this == o) {
+                return 0;
+            }
+
+            if (!(o instanceof DefaultPayment)) {
+                throw new ClassCastException(
+                        "Object to compare must be of type DefaultPayment. Object is " + o == null ? "null"
+                                : o.getClass().getName());
+            }
+
+            DefaultPayment that = (DefaultPayment) o;
+            return ComparisonChain.start()
+                    .compare(total, that.total)
+                    .compare(principal, that.principal)
+                    .compare(extraPrincipal, that.extraPrincipal)
+                    .compare(interest, that.interest)
+                    .compare(cumulativeInterest, that.cumulativeInterest)
+                    .compare(balance, that.balance)
+                    .result();
         }
 
     }

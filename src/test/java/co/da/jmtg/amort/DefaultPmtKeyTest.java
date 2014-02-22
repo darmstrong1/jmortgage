@@ -94,11 +94,32 @@ public class DefaultPmtKeyTest {
     }
 
     @Test
+    public void testCompareTo() {
+        PmtKey pmtKey1 = PmtKeys.getDefaultPmtKey(PmtPeriod.MONTHLY, new LocalDate("2014-02-01"), 360);
+        PmtKey pmtKey2 = PmtKeys.getDefaultPmtKey(PmtPeriod.BIWEEKLY, new LocalDate("2014-02-01"), 780);
+        PmtKey pmtKey3 = PmtKeys.getDefaultPmtKey(PmtPeriod.MONTHLY, new LocalDate("2014-02-01"), 360);
+
+        // Objects that are equal in value should be the same object.
+        assertTrue(pmtKey1 == pmtKey3);
+        assertTrue(pmtKey1.equals(pmtKey3));
+        // compareTo must be consistent with equals.
+        assertTrue(pmtKey1.compareTo(pmtKey3) == 0);
+        assertTrue(pmtKey3 == pmtKey1);
+        assertTrue(pmtKey3.equals(pmtKey1));
+        assertTrue(pmtKey3.compareTo(pmtKey1) == 0);
+
+        assertFalse(pmtKey1 == pmtKey2);
+        assertFalse(pmtKey1.equals(pmtKey2));
+        assertTrue(pmtKey1.compareTo(pmtKey2) > 0);
+        assertTrue(pmtKey2.compareTo(pmtKey1) < 0);
+    }
+
+    @Test
     public void testIterable() {
         int pmtCount = 360;
         PmtKey pmtKey = PmtKeys.getDefaultPmtKey(PmtPeriod.MONTHLY, LocalDate.now(), pmtCount);
 
-        Iterator<LocalDate> iterator = pmtKey.iterator();
+        Iterator<LocalDate> iterator = pmtKey.getKeys().iterator();
         int count = 0;
         LocalDate prevDate;
         if (iterator.hasNext()) {
@@ -122,7 +143,7 @@ public class DefaultPmtKeyTest {
         assertTrue(pmtKey.getCount() == years * 12);
         int count = 0;
         for (@SuppressWarnings("unused")
-        LocalDate date : pmtKey) {
+        LocalDate date : pmtKey.getKeys()) {
             count++;
         }
         assertTrue(count == years * 12);

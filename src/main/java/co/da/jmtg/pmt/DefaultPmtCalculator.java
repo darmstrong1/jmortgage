@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
@@ -218,6 +219,43 @@ class DefaultPmtCalculator implements PmtCalculator {
                 && Objects.equal(this.pmtPeriod, that.pmtPeriod)
                 && Objects.equal(this.pmtUnrounded, that.pmtUnrounded)
                 && Objects.equal(this.pmt, that.pmt);
+    }
+
+    /**
+     * Compare two DefaultPmtCalculator objects.
+     * 
+     * @param o
+     *            the object to compare
+     * 
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
+     * 
+     * @throws ClassCastException
+     *             if the PmtKey object passed in is not a DefaultPmtCalculator object.
+     */
+    @Override
+    public int compareTo(PmtCalculator o) {
+        if (this == o) {
+            return 0;
+        }
+
+        if (!(o instanceof DefaultPmtCalculator)) {
+            throw new ClassCastException(
+                    "Object to compare must be of type DefaultPmtCalculator. Object is " + o == null ? "null" : o
+                            .getClass().getName());
+        }
+
+        DefaultPmtCalculator that = (DefaultPmtCalculator) o;
+        return ComparisonChain.start()
+                .compare(loanAmt, that.loanAmt)
+                .compare(interestRate, that.interestRate)
+                .compare(periodInterestRate, that.periodInterestRate)
+                .compare(years, that.years)
+                .compare(pmtCt, that.pmtCt)
+                .compare(pmtPeriod, that.pmtPeriod)
+                .compare(pmtUnrounded, that.pmtUnrounded)
+                .compare(pmt, that.pmt)
+                .result();
     }
 
 }

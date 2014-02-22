@@ -16,7 +16,7 @@ import co.da.jmtg.pmt.PmtPeriod;
  * @since 1.0
  * @author David Armstrong
  */
-public interface PmtKey extends Iterable<LocalDate> {
+public interface PmtKey extends Comparable<PmtKey> {
 
     /**
      * Gets the <tt>LocalDate</tt> key value that this implementation of PmtKey encapsulates.

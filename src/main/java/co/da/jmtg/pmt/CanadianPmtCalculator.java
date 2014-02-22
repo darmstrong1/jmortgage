@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
@@ -12,7 +13,7 @@ class CanadianPmtCalculator implements PmtCalculator {
 
     private final double loanAmt;
     private final double interestRate;
-    private final double intervalInterestRate;
+    private final double periodInterestRate;
     private final int years;
     private final int pmtCt;
     private final PmtPeriod pmtPeriod;
@@ -52,7 +53,7 @@ class CanadianPmtCalculator implements PmtCalculator {
 
         this.loanAmt = loanAmt;
         this.interestRate = interestRate;
-        this.intervalInterestRate = Math.pow(1 + (this.interestRate / 100) / 2,
+        this.periodInterestRate = Math.pow(1 + (this.interestRate / 100) / 2,
                 (double) 2 / (double) pmtPeriod.pmtsPerYear()) - 1;
         this.pmtPeriod = pmtPeriod;
         this.years = years;
@@ -78,7 +79,7 @@ class CanadianPmtCalculator implements PmtCalculator {
 
     @Override
     public double getPeriodInterestRate() {
-        return intervalInterestRate;
+        return periodInterestRate;
     }
 
     @Override
@@ -169,7 +170,7 @@ class CanadianPmtCalculator implements PmtCalculator {
         return Objects.toStringHelper(this)
                 .add("loanAmt", loanAmt)
                 .add("interestRate", interestRate)
-                .add("intervalInterestRate", intervalInterestRate)
+                .add("periodInterestRate", periodInterestRate)
                 .add("years", years)
                 .add("pmtCt", pmtCt)
                 .add("pmtPeriod", pmtPeriod)
@@ -183,7 +184,7 @@ class CanadianPmtCalculator implements PmtCalculator {
         if (result == 0) {
             result = Objects.hashCode(loanAmt,
                     interestRate,
-                    intervalInterestRate,
+                    periodInterestRate,
                     years,
                     pmtCt,
                     pmtPeriod);
@@ -206,10 +207,47 @@ class CanadianPmtCalculator implements PmtCalculator {
         CanadianPmtCalculator that = (CanadianPmtCalculator) object;
         return Objects.equal(this.loanAmt, that.loanAmt)
                 && Objects.equal(this.interestRate, that.interestRate)
-                && Objects.equal(this.intervalInterestRate, that.intervalInterestRate)
+                && Objects.equal(this.periodInterestRate, that.periodInterestRate)
                 && Objects.equal(this.years, that.years)
                 && Objects.equal(this.pmtCt, that.pmtCt)
                 && Objects.equal(this.pmtPeriod, that.pmtPeriod);
+    }
+
+    /**
+     * Compare two CanadianPmtCalculator objects.
+     * 
+     * @param o
+     *            the object to compare
+     * 
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
+     * 
+     * @throws ClassCastException
+     *             if the PmtKey object passed in is not a CanadianPmtCalculator object.
+     */
+    @Override
+    public int compareTo(PmtCalculator o) {
+        if (this == o) {
+            return 0;
+        }
+
+        if (!(o instanceof CanadianPmtCalculator)) {
+            throw new ClassCastException(
+                    "Object to compare must be of type CanadianPmtCalculator. Object is " + o == null ? "null" : o
+                            .getClass().getName());
+        }
+
+        CanadianPmtCalculator that = (CanadianPmtCalculator) o;
+        return ComparisonChain.start()
+                .compare(loanAmt, that.loanAmt)
+                .compare(interestRate, that.interestRate)
+                .compare(periodInterestRate, that.periodInterestRate)
+                .compare(years, that.years)
+                .compare(pmtCt, that.pmtCt)
+                .compare(pmtPeriod, that.pmtPeriod)
+                .compare(pmtUnrounded, that.pmtUnrounded)
+                .compare(pmt, that.pmt)
+                .result();
     }
 
 }

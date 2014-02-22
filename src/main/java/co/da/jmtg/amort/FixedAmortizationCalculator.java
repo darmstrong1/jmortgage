@@ -17,7 +17,7 @@ import co.da.jmtg.pmt.extra.ExtraPmt;
  * @author David Armstrong
  * 
  */
-public interface FixedAmortizationCalculator {
+public interface FixedAmortizationCalculator extends Comparable<FixedAmortizationCalculator> {
 
     /**
      * Gets the implementation of <tt>PmtCalculator</tt> used to build the amortization table.
@@ -53,6 +53,27 @@ public interface FixedAmortizationCalculator {
      * @return <tt>FixedAmortizationBuilder</tt> instantiation.
      */
     FixedAmortizationCalculator setPmtKey(PmtKey pmtKey);
+
+    /**
+     * Returns a new FixedAmortization instance with the extra payment represented by the ExtraPmt object passed in. If
+     * any payment installments of the original instance already had an extra payment, this method overwrites that
+     * value.
+     * 
+     * @param key
+     *            the key of the extra payment to set
+     * 
+     * @param amount
+     *            the amount of the extra payment
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @throws IllegalArgumentException
+     *             if the key passed in is not a valid date for this mortgage
+     * 
+     * @return new FixedAmortizationCalculator instance
+     */
+    FixedAmortizationCalculator setExtraPayment(LocalDate key, double amount);
 
     /**
      * Returns a new FixedAmortization instance with the extra payment(s) represented by the ExtraPmt object passed in.
@@ -107,6 +128,26 @@ public interface FixedAmortizationCalculator {
      * @return new FixedAmortizationCalculator instance
      */
     FixedAmortizationCalculator setExtraPayments(Map<LocalDate, Double> extraPmts);
+
+    /**
+     * Returns a new FixedAmortization instance with the extra payment represented by the ExtraPmt object passed in. If
+     * any payment installments of the original instance already had an extra payment, this method adds to that value.
+     * 
+     * @param key
+     *            the key of the extra payment to set
+     * 
+     * @param amount
+     *            the amount of the extra payment
+     * 
+     * @throws NullPointerException
+     *             if key is null
+     * 
+     * @throws IllegalArgumentException
+     *             if the key passed in is not a valid date for this mortgage
+     * 
+     * @return new FixedAmortizationCalculator instance
+     */
+    FixedAmortizationCalculator addExtraPayment(LocalDate key, double amount);
 
     /**
      * Returns a new FixedAmortization instance with the extra payment(s) represented by the ExtraPmt object passed in.
@@ -243,7 +284,7 @@ public interface FixedAmortizationCalculator {
      * @author David Armstrong
      * 
      */
-    public interface Payment {
+    public interface Payment extends Comparable<Payment> {
         /**
          * Constant value for the position of the total amount for a payment when calling
          * DefaultFixedAmortizationBuilder.DefaultPayment's getPmtStats method.

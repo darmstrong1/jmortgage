@@ -9,7 +9,7 @@ package co.da.jmtg.pmt;
  * @author david
  * 
  */
-public interface PmtCalculator {
+public interface PmtCalculator extends Comparable<PmtCalculator> {
 
     /**
      * Gets the loan amount used to determine the payment.

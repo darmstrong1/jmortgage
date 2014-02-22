@@ -22,6 +22,7 @@ import co.da.jmtg.pmt.extra.ExtraPmt;
 import co.da.jmtg.pmt.extra.ExtraPmts;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
@@ -298,7 +299,7 @@ public class DefaultFixedAmortizationCalculatorTest {
 
         int ct = 0;
         assertTrue(amortCalculator.getExtraPayment(pmtKey.getFirstKey()) == 0.0);
-        Iterator<LocalDate> iterator = pmtKey.iterator();
+        Iterator<LocalDate> iterator = pmtKey.getKeys().iterator();
         iterator.next();
         while (ct++ < 11) {
             assertTrue(amortCalculator.getExtraPayment(iterator.next()) == extraAmt);
@@ -329,7 +330,7 @@ public class DefaultFixedAmortizationCalculatorTest {
         amortCalculator = amortCalculator.removeExtraPayments(keys.subList(0, 6));
 
         int ct = 0;
-        Iterator<LocalDate> iterator = pmtKey.iterator();
+        Iterator<LocalDate> iterator = pmtKey.getKeys().iterator();
         while (ct++ < 6) {
             assertTrue(amortCalculator.getExtraPayment(iterator.next()) == 0.0);
         }
@@ -403,6 +404,71 @@ public class DefaultFixedAmortizationCalculatorTest {
         assertTrue(amortCalculator3.equals(amortCalculator1) == false);
         assertTrue(amortCalculator2.equals(amortCalculator3) == false);
         assertTrue(amortCalculator3.equals(amortCalculator2) == false);
+    }
+
+    @Test
+    public void testCompareTo() {
+        PmtPeriod pmtPeriod = PmtPeriod.MONTHLY;
+        double loanAmt = 150000.00;
+        double interestRate = 4.25;
+        int years = 30;
+        PmtCalculator pmtCalculator1 = PmtCalculators.getDefaultPmtCalculator(pmtPeriod, loanAmt, interestRate, years);
+        PmtKey pmtKey1 = PmtKeys.getDefaultPmtKeyForYears(pmtPeriod, years);
+        FixedAmortizationCalculator amortCalculator1 = FixedAmortizationCalculators
+                .getDefaultFixedAmortizationCalculator(
+                        pmtCalculator1, pmtKey1);
+        FixedAmortizationCalculator amortCalculator2 = FixedAmortizationCalculators
+                .getDefaultFixedAmortizationCalculator(
+                        pmtCalculator1, pmtKey1);
+        FixedAmortizationCalculator amortCalculator3 = amortCalculator1.setPmtCalculator(pmtCalculator1
+                .setInterestRate(4.0));
+
+        assertTrue(amortCalculator1.equals(amortCalculator2));
+        assertTrue(amortCalculator1 == amortCalculator2);
+        assertTrue(amortCalculator1.compareTo(amortCalculator2) == 0);
+        assertTrue(amortCalculator2.equals(amortCalculator1));
+        assertTrue(amortCalculator2 == amortCalculator1);
+        assertTrue(amortCalculator2.compareTo(amortCalculator1) == 0);
+
+        assertTrue(amortCalculator1.equals(amortCalculator3) == false);
+        assertTrue(amortCalculator1.compareTo(amortCalculator3) > 0);
+        assertTrue(amortCalculator3.equals(amortCalculator1) == false);
+        assertTrue(amortCalculator3.compareTo(amortCalculator1) < 0);
+        assertTrue(amortCalculator2.equals(amortCalculator3) == false);
+        assertTrue(amortCalculator2.compareTo(amortCalculator3) > 0);
+        assertTrue(amortCalculator3.equals(amortCalculator2) == false);
+        assertTrue(amortCalculator3.compareTo(amortCalculator2) < 0);
+    }
+
+    @Test
+    public void testCompareToWithExtraPmts() {
+        PmtPeriod pmtPeriod = PmtPeriod.MONTHLY;
+        double loanAmt = 150000.00;
+        double interestRate = 4.25;
+        int years = 20;
+        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(pmtPeriod, loanAmt, interestRate, years);
+        PmtKey pmtKey = PmtKeys.getDefaultPmtKeyForYears(pmtPeriod, years);
+
+        // Create the calculator with extra payments.
+        FixedAmortizationCalculator amortCalculator1 = FixedAmortizationCalculators
+                .getDefaultFixedAmortizationCalculator(pmtCalculator, pmtKey,
+                        ExtraPmts.getDefaultExtraPmt(pmtKey, 500.0));
+
+        // Add 200 to the last extra payment. amortCalculator2 should be greater than amortCalculator1.
+        int idx = pmtKey.getKeys().size() - 1;
+        FixedAmortizationCalculator amortCalculator2 = amortCalculator1.addExtraPayment(pmtKey.getKeys().get(idx),
+                200.0);
+
+        assertTrue(amortCalculator1.compareTo(amortCalculator2) < 0);
+        assertTrue(amortCalculator2.compareTo(amortCalculator1) > 0);
+
+        // Set amortCalculator3's last extra payment to the same as amortCalculator2. They should be the same object,
+        // so compareTo should return 0.
+        FixedAmortizationCalculator amortCalculator3 = amortCalculator2.setExtraPayment(pmtKey.getKeys().get(idx),
+                700.0);
+
+        assertTrue(amortCalculator2.compareTo(amortCalculator3) == 0);
+        assertTrue(amortCalculator3.compareTo(amortCalculator2) == 0);
     }
 
     @Test
@@ -1380,6 +1446,29 @@ public class DefaultFixedAmortizationCalculatorTest {
                     && Objects.equal(this.interest, that.getInterest())
                     && Objects.equal(this.cumulativeInterest, that.getCumulativeInterest())
                     && Objects.equal(this.balance, that.getBalance());
+        }
+
+        @Override
+        public int compareTo(Payment o) {
+            if (this == o) {
+                return 0;
+            }
+
+            if (!(o instanceof TestingPayment)) {
+                throw new ClassCastException(
+                        "Object to compare must be of type TestingPayment. Object is " + o == null ? "null"
+                                : o.getClass().getName());
+            }
+
+            TestingPayment that = (TestingPayment) o;
+            return ComparisonChain.start()
+                    .compare(total, that.total)
+                    .compare(principal, that.principal)
+                    .compare(extraPrincipal, that.extraPrincipal)
+                    .compare(interest, that.interest)
+                    .compare(cumulativeInterest, that.cumulativeInterest)
+                    .compare(balance, that.balance)
+                    .result();
         }
 
     }

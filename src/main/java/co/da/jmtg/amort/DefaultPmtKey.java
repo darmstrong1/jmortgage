@@ -1,6 +1,5 @@
 package co.da.jmtg.amort;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -9,6 +8,7 @@ import co.da.jmtg.pmt.PmtPeriod;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
@@ -153,10 +153,10 @@ class DefaultPmtKey implements PmtKey {
         return getInstance(pmtPeriod, firstKey, count);
     }
 
-    @Override
-    public Iterator<LocalDate> iterator() {
-        return keys.iterator();
-    }
+    // @Override
+    // public Iterator<LocalDate> iterator() {
+    // return keys.iterator();
+    // }
 
     @Override
     public String toString() {
@@ -192,9 +192,55 @@ class DefaultPmtKey implements PmtKey {
 
         DefaultPmtKey that = (DefaultPmtKey) object;
         return Objects.equal(this.firstKey, that.firstKey)
-                && Objects.equal(this.keys, that.keys)
                 && Objects.equal(this.pmtPeriod, that.pmtPeriod)
-                && Objects.equal(this.count, that.count);
+                && Objects.equal(this.count, that.count)
+                && Objects.equal(this.keys, that.keys);
+    }
+
+    /**
+     * Compare two DefaultPmtKey objects.
+     * 
+     * @param o
+     *            the object to compare
+     * 
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
+     *         the specified object.
+     * 
+     * @throws ClassCastException
+     *             if the PmtKey object passed in is not a DefaultPmtKey object.
+     */
+    @Override
+    public int compareTo(PmtKey o) {
+        if (this == o) {
+            return 0;
+        }
+
+        if (!(o instanceof DefaultPmtKey)) {
+            throw new ClassCastException(
+                    "Object to compare must be of type DefaultPmtKey. Object is " + o == null ? "null" : o.getClass()
+                            .getName());
+        }
+        DefaultPmtKey that = (DefaultPmtKey) o;
+        ComparisonChain cmpChain = ComparisonChain.start()
+                .compare(firstKey, that.firstKey)
+                .compare(pmtPeriod, that.pmtPeriod)
+                .compare(count, that.count);
+
+        int result = cmpChain.result();
+        if (result != 0) {
+            return result;
+        }
+
+        // It should never get to this point in the code. Because we are using an Interner, two objects that are equal
+        // are the same object, so the first check will return 0. If the objects are not equal, at least one of the
+        // three values we check before the list will be unequal, so it should never have to compare the contents of the
+        // lists (thankfully).
+        for (int i = 0; i < keys.size(); i++) {
+            result = cmpChain.compare(keys.get(i), that.keys.get(i)).result();
+            if (result != 0) return result;
+        }
+
+        return result;
     }
 
 }

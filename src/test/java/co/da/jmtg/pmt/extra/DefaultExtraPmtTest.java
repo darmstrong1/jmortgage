@@ -100,7 +100,35 @@ public class DefaultExtraPmtTest {
         assertTrue(extraPmt2.equals(extraPmt3) == false);
         assertTrue(extraPmt3 != extraPmt2);
         assertTrue(extraPmt3.equals(extraPmt2) == false);
+    }
 
+    @Test
+    public void testCompareTo() {
+        PmtKey pmtKey = PmtKeys.getDefaultPmtKeyForYears(PmtPeriod.MONTHLY, 15);
+        double amount = 1000.00;
+        ExtraPmt extraPmt1 = ExtraPmts.getDefaultExtraPmt(pmtKey, amount);
+        ExtraPmt extraPmt2 = ExtraPmts.getDefaultExtraPmt(pmtKey, amount);
+        ExtraPmt extraPmt3 = ExtraPmts.getDefaultExtraPmt(pmtKey, 1500.00);
+
+        assertTrue(extraPmt1 == extraPmt2);
+        assertTrue(extraPmt1.equals(extraPmt2));
+        assertTrue(extraPmt1.compareTo(extraPmt2) == 0);
+        assertTrue(extraPmt2 == extraPmt1);
+        assertTrue(extraPmt2.equals(extraPmt1));
+        assertTrue(extraPmt2.compareTo(extraPmt1) == 0);
+
+        assertTrue(extraPmt1 != extraPmt3);
+        assertTrue(extraPmt1.equals(extraPmt3) == false);
+        assertTrue(extraPmt1.compareTo(extraPmt3) < 0);
+        assertTrue(extraPmt3 != extraPmt1);
+        assertTrue(extraPmt3.equals(extraPmt1) == false);
+        assertTrue(extraPmt3.compareTo(extraPmt1) > 0);
+        assertTrue(extraPmt2 != extraPmt3);
+        assertTrue(extraPmt2.equals(extraPmt3) == false);
+        assertTrue(extraPmt2.compareTo(extraPmt3) < 0);
+        assertTrue(extraPmt3 != extraPmt2);
+        assertTrue(extraPmt3.equals(extraPmt2) == false);
+        assertTrue(extraPmt3.compareTo(extraPmt2) > 0);
     }
 
 }
