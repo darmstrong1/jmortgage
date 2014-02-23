@@ -472,6 +472,18 @@ public class DefaultFixedAmortizationCalculatorTest {
 
         assertTrue(amortCalculator2.compareTo(amortCalculator3) == 0);
         assertTrue(amortCalculator3.compareTo(amortCalculator2) == 0);
+
+        // Add 200 to the first extra payment. This will make amortCalculator2 a different object than amortCalculator1.
+        // amortCalculator1 should be greater than amortCalculator2 because the total amount paid for amortCalculator1
+        // will be greater than amortCalculator2.
+        amortCalculator2 = amortCalculator1.addExtraPayment(pmtKey.getFirstKey(), 200.0);
+
+        assertTrue(amortCalculator1.compareTo(amortCalculator2) > 0);
+        assertTrue(amortCalculator2.compareTo(amortCalculator1) < 0);
+        assertTrue(amortCalculator1.equals(amortCalculator2) == false);
+        assertTrue(amortCalculator1 == amortCalculator2 == false);
+        assertTrue(amortCalculator2.equals(amortCalculator1) == false);
+        assertTrue(amortCalculator2 == amortCalculator1 == false);
     }
 
     @Test
