@@ -3,8 +3,10 @@
   <groupId>co.davidarmstrong</groupId>
   <artifactId>jmortgage</artifactId>
   <version>1.0.0</version>
+  <packaging>jar</packaging>
   <name>jmortgage</name>
   <description>A java library for calculating mortgage schedules</description>
+  <url>https://github.com/darmstrong1/jmortgage</url>
   <developers>
     <developer>
       <name>David Armstrong</name>
@@ -20,6 +22,7 @@
   </licenses>
   <scm>
     <url>https://github.com/darmstrong1/jmortgage</url>
+    <connection>https://github.com/darmstrong1/jmortgage</connection>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
