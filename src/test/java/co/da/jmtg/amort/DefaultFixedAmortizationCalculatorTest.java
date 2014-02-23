@@ -373,9 +373,8 @@ public class DefaultFixedAmortizationCalculatorTest {
             assertTrue(extraPmts.get(key) == extraAmt);
         }
 
-        // Get the extra payments out of amortCalculator, which should be an empty map.
-        extraPmts = amortCalculator.getExtraPayments();
-        assertTrue(extraPmts.isEmpty());
+        // See if there are extra payments by calling areExtraPayments
+        assertTrue(amortCalculator.areExtraPayments() == false);
 
     }
 
@@ -454,13 +453,17 @@ public class DefaultFixedAmortizationCalculatorTest {
                 .getDefaultFixedAmortizationCalculator(pmtCalculator, pmtKey,
                         ExtraPmts.getDefaultExtraPmt(pmtKey, 500.0));
 
-        // Add 200 to the last extra payment. amortCalculator2 should be greater than amortCalculator1.
+        // Add 200 to the last extra payment. amortCalculator2 should still be the same as amortCalculator1 because the
+        // mortgage will be paid for before the date of the last payment. So, the only difference is an extra payment
+        // that will never take effect.
         int idx = pmtKey.getKeys().size() - 1;
         FixedAmortizationCalculator amortCalculator2 = amortCalculator1.addExtraPayment(pmtKey.getKeys().get(idx),
                 200.0);
 
-        assertTrue(amortCalculator1.compareTo(amortCalculator2) < 0);
-        assertTrue(amortCalculator2.compareTo(amortCalculator1) > 0);
+        assertTrue(amortCalculator1.equals(amortCalculator2));
+        assertTrue(amortCalculator1 == amortCalculator2);
+        assertTrue(amortCalculator1.compareTo(amortCalculator2) == 0);
+        assertTrue(amortCalculator2.compareTo(amortCalculator1) == 0);
 
         // Set amortCalculator3's last extra payment to the same as amortCalculator2. They should be the same object,
         // so compareTo should return 0.
@@ -485,9 +488,6 @@ public class DefaultFixedAmortizationCalculatorTest {
                         pmtCalculator, pmtKey);
 
         SortedMap<LocalDate, Payment> amortTable = amortCalculator.getTable();
-        System.out.println(amortTable);
-
-        System.out.println(tableCase1);
 
         assertTrue(amortTable.size() == tableCase1.size());
 
@@ -519,9 +519,6 @@ public class DefaultFixedAmortizationCalculatorTest {
                         ExtraPmts.getDefaultExtraPmt(pmtKey, 500.0));
 
         SortedMap<LocalDate, Payment> amortTable = amortCalculator.getTable();
-        System.out.println(amortTable);
-
-        System.out.println(tableCase2);
 
         assertTrue(amortTable.size() == tableCase2.size());
 

@@ -4,10 +4,10 @@ import co.da.jmtg.amort.PmtKey;
 
 /**
  * Implementations of this interface encapsulate extra payments. Extra payment objects contain the amount of the extra
- * payment, the number of payments to which the extra payment will be applied, and a PmtKey object. The PmtKey object
- * indicates the start date of the extra payment. This start date must match exactly with the date of one of the regular
- * mortgage payments. The PmtKey also indicates the interval of the extra payment. Valid pmtPeriod values are ONETIME,
- * YEARLY, MONTHLY, BIWEEKLY, RAPID_BIWEEKLY, WEEKLY, and RAPID_WEEKLY.
+ * payment, the number of payments to which the extra payment will be applied, and a {@link PmtKey} object. The PmtKey
+ * object indicates the start date of the extra payment. This start date must match exactly with the date of one of the
+ * regular mortgage payments. The PmtKey also indicates the interval of the extra payment. Valid pmtPeriod values are
+ * ONETIME, YEARLY, MONTHLY, BIWEEKLY, RAPID_BIWEEKLY, WEEKLY, and RAPID_WEEKLY.
  * 
  * @since 1.0
  * @author David Armstrong

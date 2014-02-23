@@ -8,7 +8,15 @@ import co.da.jmtg.pmt.PmtCalculator;
 import co.da.jmtg.pmt.extra.ExtraPmt;
 
 /**
- * Contains static classes pertaining to instances of <tt>FixedAmortizationCalculator</tt>
+ * <p>
+ * Contains static classes pertaining to instances of <tt>FixedAmortizationCalculator</tt>.
+ * </p>
+ * 
+ * <p>
+ * The getDefaultFixedAmortizationCalculator methods return an instance of DefaultFixedAmortizationCalculator. These
+ * objects use instance control. This means there will never be two DefaultFixedAmortizationCalculator objects that are
+ * equal. Therefore, to compare two of these objects, it is safe to always use == instead of equals().
+ * </p>
  * 
  * @since 1.0
  * @author David Armstrong

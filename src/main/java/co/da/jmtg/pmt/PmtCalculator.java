@@ -1,5 +1,7 @@
 package co.da.jmtg.pmt;
 
+import co.da.jmtg.amort.FixedAmortizationCalculator;
+
 /**
  * A payment calculator for a fixed mortgage. An implementation of this interface calculates the interval payment of a
  * fixed mortgage given the interest rate, loan amount, and length of mortgage term in years. The interval between each
@@ -27,7 +29,7 @@ public interface PmtCalculator extends Comparable<PmtCalculator> {
 
     /**
      * Gets the interval interest rate used to determine the payment. This value is used by implementations of
-     * {@link co.da.jmtg.amort.FixedAmortizationCalculator} when building an amortization table.
+     * {@link FixedAmortizationCalculator} when building an amortization table.
      * 
      * @return interval interest rate as <tt>double</tt>.
      */
@@ -61,7 +63,7 @@ public interface PmtCalculator extends Comparable<PmtCalculator> {
      * 
      * @param loanAmt
      *            the loan amount as <tt>double</tt> to be used to calculate the payment.
-     * @return {@link PmtCalculator}.
+     * @return new <tt>PmtCalculator</tt> instance
      */
     PmtCalculator setLoanAmt(double loanAmt);
 
@@ -71,7 +73,7 @@ public interface PmtCalculator extends Comparable<PmtCalculator> {
      * 
      * @param interestRate
      *            the interest rate as <tt>double</tt> to be used to calculate the payment.
-     * @return {@link PmtCalculator}.
+     * @return new <tt>PmtCalculator</tt> instance
      */
     PmtCalculator setInterestRate(double interestRate);
 
@@ -81,7 +83,7 @@ public interface PmtCalculator extends Comparable<PmtCalculator> {
      * 
      * @param years
      *            as <tt>int</tt> to be used to calculate the payment.
-     * @return {@link PmtCalculator}.
+     * @return new <tt>PmtCalculator</tt> instance
      */
     PmtCalculator setYears(int years);
 
@@ -91,7 +93,7 @@ public interface PmtCalculator extends Comparable<PmtCalculator> {
      * 
      * @param pmtPeriod
      *            {@link PmtPeriod} object to be used to calculate the payment.
-     * @return {@link PmtCalculator}.
+     * @return new <tt>PmtCalculator</tt> instance
      */
     PmtCalculator setPmtPeriod(PmtPeriod pmtPeriod);
 

@@ -39,11 +39,16 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     private final double periodInterestRate;
     private final double pmt;
 
-    // Store extra payments in this Map.
-    private final Map<LocalDate, Double> extraPmtMap;
-
     // This stores the result and is calculated at the end of the constructor.
     private final SortedMap<LocalDate, Payment> amortizationMap;
+
+    // Convenience member to determine if extra payments are configured for this object. It is not evaluated in
+    // hashCode, equals, or compareTo.
+    private final boolean areExtraPmts;
+
+    // extraPmtMap gets created only if getExtraPayments is called. It is not evaluated in hashCode, equals or compareTo
+    // because it does not need to be. Its values are derived from the extra payments captured in the amortizationMap.
+    private volatile SortedMap<LocalDate, Double> extraPmtMap;
 
     private volatile int hashCode;
 
@@ -68,8 +73,8 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         pmt = pmtCalculator.getPmtUnrounded(); // MUST get the unrounded payment amount for accuracy.
 
         this.pmtKey = pmtKey;
-        // No extra payments, so set it to an empty map.
-        extraPmtMap = ImmutableMap.of();
+
+        areExtraPmts = false;
 
         amortizationMap = buildTable();
     }
@@ -100,9 +105,11 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         pmt = pmtCalculator.getPmtUnrounded(); // MUST get the unrounded payment amount for accuracy.
 
         this.pmtKey = pmtKey;
-        extraPmtMap = initializeExtraPmts(extraPmts);
+        Map<LocalDate, Double> extraPmtMap = initializeExtraPmts(extraPmts);
 
         amortizationMap = buildTable(extraPmtMap);
+        // To be sure, call areExtraPmtsInternal to determine value of areExtraPmts.
+        areExtraPmts = areExtraPmtsInternal();
     }
 
     /*
@@ -133,9 +140,11 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         pmt = pmtCalculator.getPmtUnrounded(); // MUST get the unrounded payment amount for accuracy.
 
         this.pmtKey = pmtKey;
-        extraPmtMap = initializeExtraPmts(extraPmts);
+        Map<LocalDate, Double> extraPmtMap = initializeExtraPmts(extraPmts);
 
         amortizationMap = buildTable(extraPmtMap);
+        // To be sure, call areExtraPmtsInternal to determine value of areExtraPmts.
+        areExtraPmts = areExtraPmtsInternal();
     }
 
     /*
@@ -167,9 +176,11 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         pmt = pmtCalculator.getPmtUnrounded(); // MUST get the unrounded payment amount for accuracy.
 
         this.pmtKey = pmtKey;
-        extraPmtMap = initializeExtraPmts(extraPmts);
+        Map<LocalDate, Double> extraPmtMap = initializeExtraPmts(extraPmts);
 
         amortizationMap = buildTable(extraPmtMap);
+        // To be sure, call areExtraPmtsInternal to determine value of areExtraPmts.
+        areExtraPmts = areExtraPmtsInternal();
     }
 
     /*
@@ -396,6 +407,29 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     }
 
     /*
+     * Walk through the amortizationMap to see if there are any extra payments greater than 0. Return true as soon as we
+     * find the first one.
+     * 
+     * @return true if there are any extra payments greater than 0.0
+     */
+    private boolean areExtraPmtsInternal() {
+        Set<LocalDate> keys = amortizationMap.keySet();
+        for (LocalDate key : keys) {
+            Payment pmt = amortizationMap.get(key);
+            if (pmt.getExtraPrincipal() > 0.0) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Return areExtraPmts value, which is determined at object instantiation.
+     */
+    @Override
+    public boolean areExtraPayments() {
+        return areExtraPmts;
+    }
+
+    /*
      * Ensures that the payment period is one of: BIWEEKLY, RAPID_BIWEEKLY, MONTHLY, WEEKLY, or RAPID_WEEKLY.
      */
     private boolean isValidPmtPeriod(PmtPeriod mortgagePeriod, PmtPeriod extraPeriod) {
@@ -462,22 +496,22 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * payment map is mutable, so we can add the contents of the new map to it.
      */
     private Map<LocalDate, Double> mergeWithExistingExtraPmts(Map<LocalDate, Double> newExtraPmtMap,
-            Map<LocalDate, Double> existingExtraPmtMap, boolean add) {
+            Map<LocalDate, Double> mutableExistingExtraPmtMap, boolean add) {
         if (add) {
             for (LocalDate key : newExtraPmtMap.keySet()) {
                 // Get the existing value so we can add it.
-                Double e = existingExtraPmtMap.get(key);
+                Double e = mutableExistingExtraPmtMap.get(key);
                 double existing = e == null ? 0.0 : e.doubleValue();
                 Double newExtra = newExtraPmtMap.get(key).doubleValue() + existing;
-                existingExtraPmtMap.put(key, newExtra);
+                mutableExistingExtraPmtMap.put(key, newExtra);
             }
         } else {
             // Add the new values from newExtraPmtMap. Any duplicate values in mutableExtraPmtMap will be overwritten,
             // which is what we want.
-            existingExtraPmtMap.putAll(newExtraPmtMap);
+            mutableExistingExtraPmtMap.putAll(newExtraPmtMap);
         }
 
-        return existingExtraPmtMap;
+        return mutableExistingExtraPmtMap;
     }
 
     /*
@@ -485,7 +519,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * setExtraPayment(ExtraPmt extraPmts) method, which returns a new FixedAmortizationCalculator object.
      */
     private Map<LocalDate, Double> buildExtraPmtFromExisting(ExtraPmt extraPmts, boolean add) {
-        Map<LocalDate, Double> mutableExtraPmtMap = new HashMap<>(extraPmtMap);
+        Map<LocalDate, Double> mutableExtraPmtMap = new HashMap<>(getExtraPayments());
 
         // Now, build a map with the extraPmts passed in.
         Map<LocalDate, Double> newExtraPmtMap = initializeExtraPmts(extraPmts);
@@ -499,7 +533,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * add is true, it will add the amount of a new extra payment to one that already exists.
      */
     private Map<LocalDate, Double> buildExtraPmtFromExisting(Iterable<ExtraPmt> extraPmts, boolean add) {
-        Map<LocalDate, Double> mutableExtraPmtMap = new HashMap<>(extraPmtMap);
+        Map<LocalDate, Double> mutableExtraPmtMap = new HashMap<>(getExtraPayments());
 
         // Now, build a map with the extraPmts passed in.
         Map<LocalDate, Double> newExtraPmtMap = initializeExtraPmts(extraPmts);
@@ -512,7 +546,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * setExtraPayment(Map<LocalDate, Double> extraPmts) method, which returns a new FixedAmortizationCalculator object.
      */
     private Map<LocalDate, Double> buildExtraPmtFromExisting(Map<LocalDate, Double> extraPmts, boolean add) {
-        Map<LocalDate, Double> mutableExtraPmtMap = new HashMap<>(extraPmtMap);
+        Map<LocalDate, Double> mutableExtraPmtMap = new HashMap<>(getExtraPayments());
 
         // Now, build a map with the extraPmts passed in.
         Map<LocalDate, Double> newExtraPmtMap = initializeExtraPmts(extraPmts);
@@ -544,7 +578,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
 
         Map<LocalDate, Double> xtra = ImmutableMap.of(key, Double.valueOf(amount));
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, xtra);
         }
 
@@ -573,7 +607,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     public FixedAmortizationCalculator setExtraPayment(ExtraPmt extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, extraPmts);
         }
 
@@ -602,7 +636,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     public FixedAmortizationCalculator setExtraPayments(Iterable<ExtraPmt> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, extraPmts);
         }
 
@@ -630,7 +664,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     public FixedAmortizationCalculator setExtraPayments(Map<LocalDate, Double> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, extraPmts);
         }
 
@@ -660,7 +694,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
 
         Map<LocalDate, Double> xtra = ImmutableMap.of(key, Double.valueOf(amount));
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, xtra);
         }
 
@@ -686,7 +720,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     public FixedAmortizationCalculator addExtraPayment(ExtraPmt extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, extraPmts);
         }
 
@@ -712,7 +746,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     public FixedAmortizationCalculator addExtraPayments(Iterable<ExtraPmt> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, extraPmts);
         }
 
@@ -738,7 +772,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     public FixedAmortizationCalculator addExtraPayments(Map<LocalDate, Double> extraPmts) {
         Preconditions.checkNotNull(extraPmts, "extraPmts must not be null.");
 
-        if (extraPmtMap.isEmpty()) {
+        if (!areExtraPmts) {
             return getInstance(pmtCalculator, pmtKey, extraPmts);
         }
 
@@ -755,23 +789,20 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      *             if key is null
      * 
      * @throws IllegalArgumentException
-     *             if there are no extra payments defined for this object or if there is no extra payment for the
-     *             payment represented by key
+     *             if there is no extra payment for the payment represented by key
      * @return new FixedAmortizationCalculator instance
      */
     @Override
     public FixedAmortizationCalculator removeExtraPayment(LocalDate key) {
         Preconditions.checkNotNull(key, "key must not be null.");
-        Preconditions.checkArgument(extraPmtMap.isEmpty() == false,
-                "extraPmtMap must not be empty before calling removeExtraPayment");
         // If extraPmtMap does not contain the key we are trying to remove, throw an IllegalArgumentException. We could
         // ignore it and return the same object, but throwing an Exception sends a clear message to the caller that
         // what they were trying to do failed.
-        Preconditions.checkArgument(extraPmtMap.containsKey(key), "attempt to remove extra payment with key of " + key
+        Preconditions.checkArgument(getExtraPayment(key) > 0.0, "attempt to remove extra payment with key of " + key
                 + " failed because extraPmtMap does not contain an extra payment with that key.");
 
         // Create a mutable copy of the map and remove the extra payment from that.
-        Map<LocalDate, Double> reducedMap = new HashMap<>(extraPmtMap);
+        Map<LocalDate, Double> reducedMap = new HashMap<>(getExtraPayments());
         reducedMap.remove(key);
 
         return getInstance(pmtCalculator, pmtKey, reducedMap);
@@ -794,15 +825,12 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     @Override
     public FixedAmortizationCalculator removeExtraPayments(Iterable<LocalDate> keys) {
         Preconditions.checkNotNull(keys, "keys must not be null.");
-        Preconditions.checkArgument(extraPmtMap.isEmpty() == false,
-                "extraPmtMap must not be empty before calling removeExtraPayments");
 
         // Create a mutable copy of the map and remove the extra payment from that.
-        Map<LocalDate, Double> reducedMap = new HashMap<>(extraPmtMap);
+        Map<LocalDate, Double> reducedMap = new HashMap<>(getExtraPayments());
         for (LocalDate key : keys) {
-            Preconditions.checkArgument(reducedMap.containsKey(key), "attempt to remove extra payment with key of "
-                    + key
-                    + " failed because extraPmtMap does not contain an extra payment with that key.");
+            Preconditions.checkArgument(getExtraPayment(key) > 0.0, "attempt to remove extra payment with key of "
+                    + key + " failed because extraPmtMap does not contain an extra payment with that key.");
             reducedMap.remove(key);
         }
 
@@ -810,26 +838,42 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     }
 
     /**
-     * Clears the extra payments.
+     * Returns a new FixedAmortizationCalculator object that has no extra payments.
      * 
-     * @throws IllegalArgumentException
-     *             if there are no extra payments defined for this object
+     * @throws IllegalStateException
+     *             if this object does not contain extra payments
+     * 
      * @return new FixedAmortizationCalculator instance
      */
     @Override
     public FixedAmortizationCalculator clearExtraPayments() {
-        Preconditions.checkArgument(extraPmtMap.isEmpty() == false,
-                "extraPmtMap must not be empty before calling clearExtraPayments");
 
+        Preconditions.checkState(areExtraPmts, "This object does not contain extra payments so none can be cleared.");
         return getInstance(pmtCalculator, pmtKey);
     }
 
     /**
-     * Returns a sorted copy of the extraPmtMap.
+     * Returns a sorted map of the extra payments for this mortgage. If this mortgage does not have any extra payments,
+     * this will return a map of extra payments that each equal 0.0.
+     * 
+     * @return a map of extra payments sorted by the payment date
      */
     @Override
     public SortedMap<LocalDate, Double> getExtraPayments() {
-        return ImmutableSortedMap.copyOf(extraPmtMap);
+
+        SortedMap<LocalDate, Double> extraPmts = extraPmtMap;
+
+        if (extraPmts == null) {
+            ImmutableSortedMap.Builder<LocalDate, Double> bldr = new ImmutableSortedMap.Builder<>(Ordering.natural());
+            Set<LocalDate> keys = amortizationMap.keySet();
+            for (LocalDate key : keys) {
+                bldr.put(key, amortizationMap.get(key).getExtraPrincipal());
+            }
+
+            extraPmts = bldr.build();
+            extraPmtMap = extraPmts;
+        }
+        return extraPmts;
     }
 
     /**
@@ -842,13 +886,19 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      * @throws NullPointerException
      *             if key is null
      * 
+     * @throws IllegalArgumentException
+     *             if the key passed in is not valid for this mortgage.
+     * 
      * @return the extra payment for the key or 0.0 if there is no extra payment for it
      */
     @Override
     public double getExtraPayment(LocalDate key) {
         Preconditions.checkNotNull(key, "key must not be null.");
-        Double e = extraPmtMap.get(key);
-        return e == null ? 0.0 : e.doubleValue();
+        Preconditions.checkArgument(pmtKey.getKeys().contains(key), key + " is not valid for this mortgage.");
+
+        Payment pmt = amortizationMap.get(key);
+        Double e = pmt == null ? 0.0 : pmt.getExtraPrincipal();
+        return e.doubleValue();
     }
 
     /**
@@ -926,8 +976,8 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
                 .add("pmtKey", pmtKey)
                 .add("periodInterestRate", periodInterestRate)
                 .add("pmt", pmt)
-                .add("extraPmtMap", extraPmtMap)
                 .add("amortizationMap", amortizationMap)
+                .add("areExtraPmts", areExtraPmts)
                 .toString();
     }
 
@@ -940,7 +990,6 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
                     pmtKey,
                     periodInterestRate,
                     pmt,
-                    extraPmtMap,
                     amortizationMap);
             hashCode = result;
         }
@@ -948,6 +997,15 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return result;
     }
 
+    /**
+     * Compares two FixedAmortizationCalculator objects for equality.
+     * 
+     * Note: DefaultAmortizationCalculator uses instance control, so two objects that are equal will be the same object.
+     * Therefore, to compare equality between two DefaultAmortizationCalculator object's one can use == instead of
+     * equals().
+     * 
+     * @return true if the two objects are effectively the same, false otherwise.
+     */
     @Override
     public boolean equals(Object object) {
         if (object == this) {
@@ -958,12 +1016,13 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
             return false;
         }
 
+        // Do not compare the areExtraPmt boolean value or the extraPmtMap as those values are derived from the contents
+        // of amortizationMap
         DefaultFixedAmortizationCalculator that = (DefaultFixedAmortizationCalculator) object;
         return Objects.equal(this.periodInterestRate, that.periodInterestRate)
                 && Objects.equal(this.pmt, that.pmt)
                 && Objects.equal(this.pmtCalculator, that.pmtCalculator)
                 && Objects.equal(this.pmtKey, that.pmtKey)
-                && Objects.equal(this.extraPmtMap, that.extraPmtMap)
                 && Objects.equal(this.amortizationMap, that.amortizationMap);
     }
 
@@ -1021,38 +1080,13 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
             return result;
         }
 
-        // If two DefaultFixedAmortizationCalculators are not the same, it is highly unlikely we will get to this point.
-        // See if the extraPmtMaps are the same size.
-        int extraSz = extraPmtMap.size();
-        int thatXtraSz = that.extraPmtMap.size();
-        if (extraSz > thatXtraSz) return 1;
-        if (extraSz < thatXtraSz) return -1;
-
-        // If we get here, we know the keys for both objects should be the same. If they were not the same, the PmtKey
-        // objects would not be the same and the PmtKey objects have already been compared. If they were not the same,
-        // we would not be at this point. So, at this point, compare the extra payment values.
-
-        Set<LocalDate> keys = extraPmtMap.keySet();
-
-        for (LocalDate key : keys) {
-            Double extraPmt = extraPmtMap.get(key);
-            Double thatXtraPmt = that.extraPmtMap.get(key);
-            // A null value is considered less than anything else.
-            if (thatXtraPmt == null) return 1;
-            result = extraPmt.compareTo(thatXtraPmt);
-            if (result != 0) return result;
-        }
-
-        // Compare the two amortization maps. We should never get here because if we did, the objects would be the same.
-        // We use an Interner, so objects that are equal will always be the same object.
-
         // See if the amortization maps are the same size.
         int amortSz = amortizationMap.size();
         int thatAmortSz = that.amortizationMap.size();
         if (amortSz > thatAmortSz) return 1;
         if (amortSz < thatAmortSz) return -1;
 
-        keys = amortizationMap.keySet();
+        Set<LocalDate> keys = amortizationMap.keySet();
         for (LocalDate key : keys) {
             Payment thisPmt = amortizationMap.get(key);
             Payment thatPmt = that.amortizationMap.get(key);

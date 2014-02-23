@@ -7,7 +7,15 @@ import co.da.jmtg.pmt.PmtPeriod;
 import com.google.common.base.Preconditions;
 
 /**
- * Contains static classes pertaining to instances of <tt>PmtKey</tt>
+ * <p>
+ * Contains static classes pertaining to instances of <tt>PmtKey</tt>.
+ * </p>
+ * 
+ * <p>
+ * The getDefaultPmtKey methods return an instance of DefaultPmtKey. These objects use instance control. This means
+ * there will never be two DefaultPmtKey objects that are equal. Therefore, to compare two of these objects, it is safe
+ * to always use == instead of equals().
+ * </p>
  * 
  * @since 1.0
  * 

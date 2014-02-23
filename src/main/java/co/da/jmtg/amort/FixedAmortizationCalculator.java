@@ -10,8 +10,8 @@ import co.da.jmtg.pmt.extra.ExtraPmt;
 
 /**
  * An amortization table builder for a fixed mortgage. An implementation of this builds a {@link SortedMap} that holds
- * the contents of an amortization schedule. The map uses a Long object that represents the date of the payment as the
- * key and an object that implements the {@link Payment} interface as the value.
+ * the contents of an amortization schedule. The map uses a {@link LocalDate} object that represents the date of the
+ * payment as the key and an object that implements the {@link Payment} interface as the value.
  * 
  * @since 1.0
  * @author David Armstrong
@@ -262,7 +262,7 @@ public interface FixedAmortizationCalculator extends Comparable<FixedAmortizatio
     /**
      * Returns a new FixedAmortizationCalculator instance with no extra payments.
      * 
-     * @throws IllegalArgumentException
+     * @throws IllegalStateException
      *             if there are no extra payments defined for this object
      * 
      * @return new FixedAmortizationCalculator instance
@@ -270,9 +270,16 @@ public interface FixedAmortizationCalculator extends Comparable<FixedAmortizatio
     FixedAmortizationCalculator clearExtraPayments();
 
     /**
-     * Gets the amortization table. The amortization table is represented as a <tt>SortedMap</tt> with a
-     * <tt>LocalDate</tt> that represents the date the payment is due as the key and an implementation of
-     * <tt>FixedAmortizationBuilder.Payment</tt> as the value.
+     * Returns true if the extra payments for this mortgage are greater than 0.0
+     * 
+     * @return true if there are any extra payments
+     */
+    boolean areExtraPayments();
+
+    /**
+     * Gets the amortization table. The amortization table is represented as a {@link SortedMap} with a
+     * {@link LocalDate} that represents the date the payment is due as the key and an implementation of {@link Payment}
+     * as the value.
      * 
      * @return <tt>SortedMap</tt>
      */
