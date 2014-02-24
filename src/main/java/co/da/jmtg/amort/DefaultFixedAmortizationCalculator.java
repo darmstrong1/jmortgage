@@ -35,7 +35,8 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     private final PmtCalculator pmtCalculator;
     private final PmtKey pmtKey;
     // Get a local copy of intervalInterestRate, mthlyPmt, and interval from the PmtCalculator object because they will
-    // be used so much when building the amortization table.
+    // be used so much when building the amortization table. These two values are not used in toString, equals,
+    // hashCode, or compareTo because they are redundant.
     private final double periodInterestRate;
     private final double pmt;
 
@@ -46,9 +47,9 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
     // hashCode, equals, or compareTo.
     private final boolean areExtraPmts;
 
-    // extraPmtMap gets created only if getExtraPayments is called. It is not evaluated in hashCode, equals or compareTo
-    // because it does not need to be. Its values are derived from the extra payments captured in the amortizationMap.
-    private volatile SortedMap<LocalDate, Double> extraPmtMap;
+    // extraPmtMap is not evaluated in hashCode, equals or compareTo because it does not need to be. Its values are
+    // derived from the extra payments captured in the amortizationMap.
+    private final SortedMap<LocalDate, Double> extraPmtMap;
 
     private volatile int hashCode;
 
@@ -74,9 +75,10 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
 
         this.pmtKey = pmtKey;
 
-        areExtraPmts = false;
-
         amortizationMap = buildTable();
+
+        areExtraPmts = false;
+        extraPmtMap = getExtraPmts();
     }
 
     /*
@@ -110,6 +112,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         amortizationMap = buildTable(extraPmtMap);
         // To be sure, call areExtraPmtsInternal to determine value of areExtraPmts.
         areExtraPmts = areExtraPmtsInternal();
+        this.extraPmtMap = getExtraPmts();
     }
 
     /*
@@ -145,6 +148,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         amortizationMap = buildTable(extraPmtMap);
         // To be sure, call areExtraPmtsInternal to determine value of areExtraPmts.
         areExtraPmts = areExtraPmtsInternal();
+        this.extraPmtMap = getExtraPmts();
     }
 
     /*
@@ -181,6 +185,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         amortizationMap = buildTable(extraPmtMap);
         // To be sure, call areExtraPmtsInternal to determine value of areExtraPmts.
         areExtraPmts = areExtraPmtsInternal();
+        this.extraPmtMap = getExtraPmts();
     }
 
     /*
@@ -852,6 +857,19 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return getInstance(pmtCalculator, pmtKey);
     }
 
+    /*
+     * Create the map of extra payments. This is called in the constructors.
+     */
+    private SortedMap<LocalDate, Double> getExtraPmts() {
+        ImmutableSortedMap.Builder<LocalDate, Double> bldr = new ImmutableSortedMap.Builder<>(Ordering.natural());
+        Set<LocalDate> keys = amortizationMap.keySet();
+        for (LocalDate key : keys) {
+            bldr.put(key, amortizationMap.get(key).getExtraPrincipal());
+        }
+
+        return bldr.build();
+    }
+
     /**
      * Returns a sorted map of the extra payments for this mortgage. If this mortgage does not have any extra payments,
      * this will return a map of extra payments that each equal 0.0.
@@ -860,20 +878,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
      */
     @Override
     public SortedMap<LocalDate, Double> getExtraPayments() {
-
-        SortedMap<LocalDate, Double> extraPmts = extraPmtMap;
-
-        if (extraPmts == null) {
-            ImmutableSortedMap.Builder<LocalDate, Double> bldr = new ImmutableSortedMap.Builder<>(Ordering.natural());
-            Set<LocalDate> keys = amortizationMap.keySet();
-            for (LocalDate key : keys) {
-                bldr.put(key, amortizationMap.get(key).getExtraPrincipal());
-            }
-
-            extraPmts = bldr.build();
-            extraPmtMap = extraPmts;
-        }
-        return extraPmts;
+        return extraPmtMap;
     }
 
     /**
@@ -974,10 +979,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         return Objects.toStringHelper(this)
                 .add("pmtCalculator", pmtCalculator)
                 .add("pmtKey", pmtKey)
-                .add("periodInterestRate", periodInterestRate)
-                .add("pmt", pmt)
                 .add("amortizationMap", amortizationMap)
-                .add("areExtraPmts", areExtraPmts)
                 .toString();
     }
 
@@ -988,8 +990,6 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         if (result == 0) {
             result = Objects.hashCode(pmtCalculator,
                     pmtKey,
-                    periodInterestRate,
-                    pmt,
                     amortizationMap);
             hashCode = result;
         }
@@ -1019,9 +1019,7 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         // Do not compare the areExtraPmt boolean value or the extraPmtMap as those values are derived from the contents
         // of amortizationMap
         DefaultFixedAmortizationCalculator that = (DefaultFixedAmortizationCalculator) object;
-        return Objects.equal(this.periodInterestRate, that.periodInterestRate)
-                && Objects.equal(this.pmt, that.pmt)
-                && Objects.equal(this.pmtCalculator, that.pmtCalculator)
+        return Objects.equal(this.pmtCalculator, that.pmtCalculator)
                 && Objects.equal(this.pmtKey, that.pmtKey)
                 && Objects.equal(this.amortizationMap, that.amortizationMap);
     }
@@ -1071,8 +1069,6 @@ class DefaultFixedAmortizationCalculator implements FixedAmortizationCalculator 
         // The total costs are the same, so compare starting with the pmtCalculator.
         result = ComparisonChain.start()
                 .compare(pmtCalculator, that.pmtCalculator)
-                .compare(periodInterestRate, that.periodInterestRate)
-                .compare(pmt, that.pmt)
                 .compare(pmtKey, that.pmtKey)
                 .result();
 
