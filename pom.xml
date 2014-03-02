@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>co.davidarmstrong</groupId>
   <artifactId>jmortgage</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>jmortgage</name>
   <description>A java library for calculating mortgage schedules</description>
