@@ -1,11 +1,9 @@
 package co.da.jmtg.pmt;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 
 public class CanadianPmtCalculatorTest {
 
@@ -15,20 +13,20 @@ public class CanadianPmtCalculatorTest {
 
         // The monthly payment for this loan should be $1013.37.
         double expected = 1008.43;
-        PmtCalculator pmtCalc = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000, 4.5, 30);
+        PmtCalculator pmtCalc = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.MONTHLY, 200000, 4.5, 360);
         double pmt = pmtCalc.getPmt();
         assertThat(pmt, is(expected));
 
         // The rapid biweekly payment for this loan should be $513.29.
         expected = 513.29;
-        pmtCalc = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.RAPID_BIWEEKLY, 150000, 5.5, 20);
+        pmtCalc = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.RAPID_BIWEEKLY, 150000, 5.5, 240);
         pmt = pmtCalc.getPmt();
         assertThat(pmt, is(expected));
 
         // This one matches up with the rate here: https://www.rbcroyalbank.com/cgi-bin/mortgage/mpc/start.cgi/start
         // The biweekly payment for this loan should be $473.81.
         expected = 473.81;
-        pmtCalc = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.BIWEEKLY, 150000, 5.5, 20);
+        pmtCalc = PmtCalculators.getCanadianPmtCalculator(PmtPeriod.BIWEEKLY, 150000, 5.5, 240);
         pmt = pmtCalc.getPmt();
         assertThat(pmt, is(expected));
     }
