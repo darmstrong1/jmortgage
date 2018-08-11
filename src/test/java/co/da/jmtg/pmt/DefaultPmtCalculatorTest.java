@@ -1,11 +1,9 @@
 package co.da.jmtg.pmt;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 
 public class DefaultPmtCalculatorTest {
 
@@ -15,19 +13,19 @@ public class DefaultPmtCalculatorTest {
 
         // The monthly payment for this loan should be $1013.37.
         double expected = 1013.37;
-        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(PmtPeriod.MONTHLY, 200000.00, 4.5, 30);
+        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(PmtPeriod.MONTHLY, 200000.00, 4.5, 360);
         double pmt = pmtCalculator.getPmt();
         assertThat(pmt, is(expected));
 
         // The monthly payment for this loan should be $1097.75.
         expected = 1097.75;
-        pmtCalculator = PmtCalculators.getDefaultPmtCalculator(PmtPeriod.MONTHLY, 165000.00, 7.0, 30);
+        pmtCalculator = PmtCalculators.getDefaultPmtCalculator(PmtPeriod.MONTHLY, 165000.00, 7.0, 360);
         pmt = pmtCalculator.getPmt();
         assertThat(pmt, is(expected));
 
         // The monthly payment for this loan should be $1271.79.
         expected = 1271.79;
-        pmtCalculator = PmtCalculators.getDefaultPmtCalculator(PmtPeriod.MONTHLY, 183000, 5.625, 20);
+        pmtCalculator = PmtCalculators.getDefaultPmtCalculator(PmtPeriod.MONTHLY, 183000, 5.625, 240);
         pmt = pmtCalculator.getPmt();
         assertThat(pmt, is(expected));
     }

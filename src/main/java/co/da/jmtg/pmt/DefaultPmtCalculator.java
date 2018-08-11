@@ -1,18 +1,18 @@
 package co.da.jmtg.pmt;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
  * The default implementation of <tt>PmtCalculator</tt>. This object calculates a mortgage payment for the United
  * States. This object is effectively immutable, so its thread safety is guaranteed.
- * 
+ *
  * @since 1.0
  * @author David Armstrong
  */
@@ -21,7 +21,7 @@ class DefaultPmtCalculator implements PmtCalculator {
     private final double loanAmt;
     private final double interestRate;
     private final double periodInterestRate;
-    private final int years;
+    private final int term;
     private final int pmtCt;
     private final PmtPeriod pmtPeriod;
     private final double pmt;
@@ -33,13 +33,13 @@ class DefaultPmtCalculator implements PmtCalculator {
     // will exist. It means clients can use == to compare for equality.
     private static final Interner<PmtCalculator> interner = Interners.newStrongInterner();
 
-    private DefaultPmtCalculator(PmtPeriod pmtPeriod, double loanAmt, double interestRate, int years) {
+    private DefaultPmtCalculator(PmtPeriod pmtPeriod, double loanAmt, double interestRate, int term) {
 
         Preconditions.checkNotNull(pmtPeriod, "pmtPeriod must not be null");
         Preconditions.checkArgument(loanAmt > 0.0, "Loan Amount must be greater than 0");
         Preconditions.checkArgument(interestRate >= 0.0 && interestRate <= 100,
                 "Interest Rate must be between 0 and 100.");
-        Preconditions.checkArgument(years > 0, "Mortgage term in years must be greater than 0.");
+        Preconditions.checkArgument(term > 0, "Mortgage term must be greater than 0.");
 
         boolean validPeriod;
         switch (pmtPeriod) {
@@ -62,8 +62,8 @@ class DefaultPmtCalculator implements PmtCalculator {
         this.interestRate = interestRate;
         this.periodInterestRate = (interestRate / pmtPeriod.pmtsPerYear()) / 100;
         this.pmtPeriod = pmtPeriod;
-        this.years = years;
-        pmtCt = years * pmtPeriod.pmtsPerYear();
+        this.term = term;
+        pmtCt =  term;
 
         pmtUnrounded = calcPmtUnrounded();
         pmt = calcPmt(pmtUnrounded);
@@ -94,8 +94,8 @@ class DefaultPmtCalculator implements PmtCalculator {
     }
 
     @Override
-    public int getYears() {
-        return years;
+    public int getTerm() {
+        return term;
     }
 
     @Override
@@ -105,12 +105,12 @@ class DefaultPmtCalculator implements PmtCalculator {
 
     @Override
     public PmtCalculator setLoanAmt(double loanAmt) {
-        return getInstance(pmtPeriod, loanAmt, interestRate, years);
+        return getInstance(pmtPeriod, loanAmt, interestRate, term);
     }
 
     @Override
     public PmtCalculator setInterestRate(double interestRate) {
-        return getInstance(pmtPeriod, loanAmt, interestRate, years);
+        return getInstance(pmtPeriod, loanAmt, interestRate, term);
     }
 
     @Override
@@ -120,7 +120,7 @@ class DefaultPmtCalculator implements PmtCalculator {
 
     @Override
     public PmtCalculator setPmtPeriod(PmtPeriod pmtPeriod) {
-        return getInstance(pmtPeriod, loanAmt, interestRate, years);
+        return getInstance(pmtPeriod, loanAmt, interestRate, term);
     }
 
     @Override
@@ -140,7 +140,7 @@ class DefaultPmtCalculator implements PmtCalculator {
     private double calcPmtUnrounded() {
         // Payment is calculated for monthly. That is why years is multiplied by 12.
         double mthlyIntRate = interestRate / (12 * 100);
-        double pwer = Math.pow(1 + mthlyIntRate, -(years * 12));
+        double pwer = Math.pow(1 + mthlyIntRate, -(term));
         double pmt = loanAmt * (mthlyIntRate / (1 - pwer));
 
         // Now, see if the PmtPeriod is weekly, rapid weekly, biweekly, or rapid biweekly. If weekly divide payment by
@@ -173,7 +173,7 @@ class DefaultPmtCalculator implements PmtCalculator {
                 .add("loanAmt", loanAmt)
                 .add("interestRate", interestRate)
                 .add("periodInterestRate", periodInterestRate)
-                .add("years", years)
+                .add("term", term)
                 .add("pmtCt", pmtCt)
                 .add("pmtPeriod", pmtPeriod)
                 .add("pmtUnrounded", pmtUnrounded)
@@ -189,7 +189,7 @@ class DefaultPmtCalculator implements PmtCalculator {
             result = Objects.hashCode(loanAmt,
                     interestRate,
                     periodInterestRate,
-                    years,
+                    term,
                     pmtCt,
                     pmtPeriod,
                     pmtUnrounded,
@@ -214,7 +214,7 @@ class DefaultPmtCalculator implements PmtCalculator {
         return Objects.equal(this.loanAmt, that.loanAmt)
                 && Objects.equal(this.interestRate, that.interestRate)
                 && Objects.equal(this.periodInterestRate, that.periodInterestRate)
-                && Objects.equal(this.years, that.years)
+                && Objects.equal(this.term, that.term)
                 && Objects.equal(this.pmtCt, that.pmtCt)
                 && Objects.equal(this.pmtPeriod, that.pmtPeriod)
                 && Objects.equal(this.pmtUnrounded, that.pmtUnrounded)
@@ -223,13 +223,13 @@ class DefaultPmtCalculator implements PmtCalculator {
 
     /**
      * Compare two DefaultPmtCalculator objects.
-     * 
+     *
      * @param o
      *            the object to compare
-     * 
+     *
      * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
      *         the specified object.
-     * 
+     *
      * @throws ClassCastException
      *             if the PmtKey object passed in is not a DefaultPmtCalculator object.
      */
@@ -250,7 +250,7 @@ class DefaultPmtCalculator implements PmtCalculator {
                 .compare(loanAmt, that.loanAmt)
                 .compare(interestRate, that.interestRate)
                 .compare(periodInterestRate, that.periodInterestRate)
-                .compare(years, that.years)
+                .compare(term, that.term)
                 .compare(pmtCt, that.pmtCt)
                 .compare(pmtPeriod, that.pmtPeriod)
                 .compare(pmtUnrounded, that.pmtUnrounded)

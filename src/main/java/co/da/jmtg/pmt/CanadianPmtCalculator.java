@@ -1,20 +1,20 @@
 package co.da.jmtg.pmt;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 class CanadianPmtCalculator implements PmtCalculator {
 
     private final double loanAmt;
     private final double interestRate;
     private final double periodInterestRate;
-    private final int years;
+    private final int term;
     private final int pmtCt;
     private final PmtPeriod pmtPeriod;
     private final double pmt;
@@ -26,13 +26,13 @@ class CanadianPmtCalculator implements PmtCalculator {
     // will exist. It means clients can use == to compare for equality.
     private static final Interner<PmtCalculator> interner = Interners.newStrongInterner();
 
-    private CanadianPmtCalculator(PmtPeriod pmtPeriod, double loanAmt, double interestRate, int years) {
+    private CanadianPmtCalculator(PmtPeriod pmtPeriod, double loanAmt, double interestRate, int term) {
 
         Preconditions.checkNotNull(pmtPeriod, "pmtPeriod must not be null");
         Preconditions.checkArgument(loanAmt > 0.0, "Loan Amount must be greater than 0");
         Preconditions.checkArgument(interestRate >= 0.0 && interestRate <= 100,
                 "Interest Rate must be between 0 and 100.");
-        Preconditions.checkArgument(years > 0, "Mortgage term in years must be greater than 0.");
+        Preconditions.checkArgument(term > 0, "Mortgage term must be greater than 0.");
 
         boolean validPeriod;
         switch (pmtPeriod) {
@@ -56,8 +56,8 @@ class CanadianPmtCalculator implements PmtCalculator {
         this.periodInterestRate = Math.pow(1 + (this.interestRate / 100) / 2,
                 (double) 2 / (double) pmtPeriod.pmtsPerYear()) - 1;
         this.pmtPeriod = pmtPeriod;
-        this.years = years;
-        pmtCt = years * pmtPeriod.pmtsPerYear();
+        this.term = term;
+        pmtCt = term;
 
         pmtUnrounded = calcPmtUnrounded();
         pmt = calcPmt(pmtUnrounded);
@@ -88,8 +88,8 @@ class CanadianPmtCalculator implements PmtCalculator {
     }
 
     @Override
-    public int getYears() {
-        return years;
+    public int getTerm() {
+        return term;
     }
 
     @Override
@@ -99,12 +99,12 @@ class CanadianPmtCalculator implements PmtCalculator {
 
     @Override
     public PmtCalculator setLoanAmt(double loanAmt) {
-        return getInstance(pmtPeriod, loanAmt, interestRate, years);
+        return getInstance(pmtPeriod, loanAmt, interestRate, term);
     }
 
     @Override
     public PmtCalculator setInterestRate(double interestRate) {
-        return getInstance(pmtPeriod, loanAmt, interestRate, years);
+        return getInstance(pmtPeriod, loanAmt, interestRate, term);
     }
 
     @Override
@@ -114,7 +114,7 @@ class CanadianPmtCalculator implements PmtCalculator {
 
     @Override
     public PmtCalculator setPmtPeriod(PmtPeriod pmtPeriod) {
-        return getInstance(pmtPeriod, loanAmt, interestRate, years);
+        return getInstance(pmtPeriod, loanAmt, interestRate, term);
     }
 
     @Override
@@ -137,7 +137,7 @@ class CanadianPmtCalculator implements PmtCalculator {
         double mthlyInterestRt = Math.pow(1 + (this.interestRate / 100) / 2, (double) 2 / (double) 12) - 1;
 
         double pmt = loanAmt
-                * (mthlyInterestRt / (1 - (Math.pow(Math.pow(1 + divInterest, semiAnnual), -(years * 12)))));
+                * (mthlyInterestRt / (1 - (Math.pow(Math.pow(1 + divInterest, semiAnnual), -(term)))));
 
         // Now, see if the PmtPeriod is weekly, rapid weekly, biweekly, or rapid biweekly. If weekly divide payment by
         // 4. If biweekly, divide payment by 2.
@@ -171,7 +171,7 @@ class CanadianPmtCalculator implements PmtCalculator {
                 .add("loanAmt", loanAmt)
                 .add("interestRate", interestRate)
                 .add("periodInterestRate", periodInterestRate)
-                .add("years", years)
+                .add("term", term)
                 .add("pmtCt", pmtCt)
                 .add("pmtPeriod", pmtPeriod)
                 .toString();
@@ -185,7 +185,7 @@ class CanadianPmtCalculator implements PmtCalculator {
             result = Objects.hashCode(loanAmt,
                     interestRate,
                     periodInterestRate,
-                    years,
+                    term,
                     pmtCt,
                     pmtPeriod);
             hashCode = result;
@@ -208,20 +208,20 @@ class CanadianPmtCalculator implements PmtCalculator {
         return Objects.equal(this.loanAmt, that.loanAmt)
                 && Objects.equal(this.interestRate, that.interestRate)
                 && Objects.equal(this.periodInterestRate, that.periodInterestRate)
-                && Objects.equal(this.years, that.years)
+                && Objects.equal(this.term, that.term)
                 && Objects.equal(this.pmtCt, that.pmtCt)
                 && Objects.equal(this.pmtPeriod, that.pmtPeriod);
     }
 
     /**
      * Compare two CanadianPmtCalculator objects.
-     * 
+     *
      * @param o
      *            the object to compare
-     * 
+     *
      * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
      *         the specified object.
-     * 
+     *
      * @throws ClassCastException
      *             if the PmtKey object passed in is not a CanadianPmtCalculator object.
      */
@@ -242,7 +242,7 @@ class CanadianPmtCalculator implements PmtCalculator {
                 .compare(loanAmt, that.loanAmt)
                 .compare(interestRate, that.interestRate)
                 .compare(periodInterestRate, that.periodInterestRate)
-                .compare(years, that.years)
+                .compare(term, that.term)
                 .compare(pmtCt, that.pmtCt)
                 .compare(pmtPeriod, that.pmtPeriod)
                 .compare(pmtUnrounded, that.pmtUnrounded)

@@ -1,31 +1,25 @@
 package co.da.jmtg.amort;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import co.da.jmtg.amort.FixedAmortizationCalculator.Payment;
 import co.da.jmtg.pmt.PmtCalculator;
 import co.da.jmtg.pmt.PmtCalculators;
 import co.da.jmtg.pmt.PmtPeriod;
 import co.da.jmtg.pmt.extra.ExtraPmt;
 import co.da.jmtg.pmt.extra.ExtraPmts;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.*;
+
+import static org.junit.Assert.assertTrue;
 
 public class DefaultFixedAmortizationCalculatorTest {
 
@@ -491,9 +485,9 @@ public class DefaultFixedAmortizationCalculatorTest {
         PmtPeriod pmtPeriod = PmtPeriod.MONTHLY;
         double loanAmt = 150000.00;
         double interestRate = 4.25;
-        int years = 20;
-        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(pmtPeriod, loanAmt, interestRate, years);
-        PmtKey pmtKey = PmtKeys.getDefaultPmtKeyForYears(pmtPeriod, years);
+        int term = 240;
+        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(pmtPeriod, loanAmt, interestRate, term);
+        PmtKey pmtKey = PmtKeys.getDefaultPmtKeyForYears(pmtPeriod, term);
 
         FixedAmortizationCalculator amortCalculator = FixedAmortizationCalculators
                 .getDefaultFixedAmortizationCalculator(
@@ -521,9 +515,9 @@ public class DefaultFixedAmortizationCalculatorTest {
         PmtPeriod pmtPeriod = PmtPeriod.MONTHLY;
         double loanAmt = 150000.00;
         double interestRate = 4.25;
-        int years = 20;
-        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(pmtPeriod, loanAmt, interestRate, years);
-        PmtKey pmtKey = PmtKeys.getDefaultPmtKeyForYears(pmtPeriod, years);
+        int term = 240;
+        PmtCalculator pmtCalculator = PmtCalculators.getDefaultPmtCalculator(pmtPeriod, loanAmt, interestRate, term);
+        PmtKey pmtKey = PmtKeys.getDefaultPmtKeyForYears(pmtPeriod, term);
 
         // Create the calculator with extra payments.
         FixedAmortizationCalculator amortCalculator = FixedAmortizationCalculators
